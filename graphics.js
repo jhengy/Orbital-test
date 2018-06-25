@@ -2,6 +2,10 @@ var camera, scene, renderer, controls;
 var axes = new THREE.Object3D;
 var allObjects = new THREE.Object3D;
 
+/*a separate var storing ref to an obj3d for containing all graphical elements 
+ related to the span section */
+var subspaceObjs = new THREE.Object3D;
+
 init();
 animate();
 
@@ -39,6 +43,7 @@ function init() {
 
 
   axes.add(allObjects);
+  axes.add(subspaceObjs);
   scene.add(axes);
 
   // create labels for axes
@@ -96,7 +101,6 @@ function makeTextSprite(message, opts, xCoord, yCoord, zCoord) {
 
 // function to plot vector in the form of an arrow
 function createVector(x,y,z,origin,hex) {
-
   var v = new THREE.Vector3(x,y,z);
   var length = v.length();
 
@@ -108,10 +112,10 @@ function createVector(x,y,z,origin,hex) {
   return arrowHelper
 }
 
-// function creating a 3D object consisting of the vector and a line spanned by the vector 
+// function creating a line graphic spanned by the vector 
 // vector: vector wrapped in Vector3 object; scale: the upper bound of x,y,z axis 
 function createLine(vector,scale) {
-  var arrow = createVector(vector.getComponent(0),vector.getComponent(1),vector.getComponent(2),new THREE.Vector3( 0, 0, 0 ),0x000000);
+  //var arrow = createVector(vector.getComponent(0),vector.getComponent(1),vector.getComponent(2),new THREE.Vector3( 0, 0, 0 ),0x000000);
   var vectorMaxLength = Math.sqrt(scale * scale * 3); 
   var scaleFactor = vectorMaxLength / (vector.length());  
   var endPt1 = vector.multiplyScalar(scaleFactor);
@@ -125,20 +129,20 @@ function createLine(vector,scale) {
   var line = new THREE.Line(geometry, material);
 
   var allObj = new THREE.Object3D();
-  allObj.add(arrow);
+  //allObj.add(arrow);
   allObj.add(line); 
   return allObj;
 }
 
 //function creating v1 and v2 obj and also a plane object  passing through the origin 
-function createPlane(v1,v2,sizeOfPlane) {
+function createPlane(v1,v2,sizeOfPlane,color) {
   // unit vector perpendicular to the plane
   var normal = v1.cross(v2).normalize();
   //note that distance of plane from origin is always 0 since it passes through orgin
   var plane = new THREE.Plane( new THREE.Vector3(normal.getComponent(0), normal.getComponent(1), normal.getComponent(2) ), 0 );
-  var color = 0xffff00;
   var obj = new THREE.Object3D();
   var planeHelper = new THREE.PlaneHelper( plane, sizeOfPlane, color );
+  /*
   var V1 = createVector(
     v1.getComponent(0),v1.getComponent(1),v1.getComponent(2),
     new THREE.Vector3(0,0,0), 0x000000);
@@ -146,7 +150,7 @@ function createPlane(v1,v2,sizeOfPlane) {
     v2.getComponent(0),v2.getComponent(1),v2.getComponent(2),
     new THREE.Vector3(0,0,0), 0x000000);
   obj.add(V1);
-  obj.add(V2);
+  obj.add(V2);*/
   obj.add(planeHelper);
   return obj;
 }
@@ -221,28 +225,72 @@ function drawAllVectors(vectorQueue) {
 
 /*
 precond: m: 3 * n matrix of n LI column vectors, where n = [0,1,2,3] 
+postcond : generating graphics of vectors and subsp in the canvas, then return an array containing 
+their ref. index 0: ref to subp graphic ; >=index 1 : reference to basis vectors(orders are preserved)  
  */
 function drawSpan(m) {
-  var obj;
+  var arr = [];
+  var obj = new THREE.Object3D();
   // identify the number of vectors to span
   var numVectors = m[0].length
-    if (numVectors == 0) {
-      alert("no vector input!");
-    } else {
-      if (numVectors == 1) {
-        obj = createLine(new THREE.Vector3(m[0][0],m[1][0],m[2][0]),50);
-      } else if (numVectors == 2) {
-        obj = createPlane(
-            new THREE.Vector3(m[0][0],m[1][0],m[2][0]),
-            new THREE.Vector3(m[0][1],m[1][1],m[2][1]),
-            100
-            )
-      } else {
-        obj = createCube();
-      }
+  if (numVectors == 1) {
+    var x = m[0][0];
+    var y = m[1][0];
+    var z = m[2][0];
+    var v = createVector(x,y,z,new THREE.Vector3(0,0,0),0x000000);
+    var line = createLine(new THREE.Vector3(x,y,z),50);
+    arr.push(line);
+    arr.push(v);
+    obj.add(line);
+    obj.add(v);
+  } else if (numVectors == 2) {
+    var x1 = m[0][0];
+    var y1 = m[1][0];
+    var z1 = m[2][0];
+    var x2 = m[0][1];
+    var y2 = m[1][1];
+    var z2 = m[2][1];
+    var plane = createPlane(
+        new THREE.Vector3(x1,y1,z1),
+        new THREE.Vector3(x2,y2,z2),
+        100,0xffff00
+        )
+    var v1 = createVector(x1,y1,z1,new THREE.Vector3(0,0,0),0x000000);
+    var v2 = createVector(x2,y2,z2,new THREE.Vector3(0,0,0),0x000000);
+    arr.push(plane);
+    arr.push(v1);
+    arr.push(v2);
+    obj.add(plane);
+    obj.add(v1);
+    obj.add(v2);
+  } else {
+    var x1 = m[0][0];
+    var y1 = m[1][0];
+    var z1 = m[2][0];
+    var x2 = m[0][1];
+    var y2 = m[1][1];
+    var z2 = m[2][1];
+    var x3 = m[0][2];
+    var y3 = m[1][2];
+    var z3 = m[2][2];
+    var cube = createCube();
+    var v1 = createVector(x1,y1,z1,new THREE.Vector3(0,0,0),0x000000);
+    var v2 = createVector(x2,y2,z2,new THREE.Vector3(0,0,0),0x000000);
+    var v3 = createVector(x3,y3,z3,new THREE.Vector3(0,0,0),0x000000);
+    arr.push(cube);
+    arr.push(v1);
+    arr.push(v2);
+    arr.push(v3);
+    obj.add(cube);
+    obj.add(v1);
+    obj.add(v2);
+    obj.add(v3);
+  }
+  //adding graphics into subpaceObjs
+  subspaceObjs.add(obj); 
 
-      allObjects.add(obj); 
-    }
-
+  return arr;
 }
+
+
 

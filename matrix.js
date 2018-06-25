@@ -1,24 +1,9 @@
+
 /*
-precond: 
-checkBoxList: an array containing reference of checkBox element
-vectorsList: an array containing reference of vectorArr
-* all vectors are in 3-space
-postcond: 
-return a matrix made up of LI vectors as column vectors that's been checked by
-the user
+precond: m : a 3 * k matrix making up of k column vectors
+postcond: return a 3 * i matrix made up of i LI vectors as column vectors
 */
-function getVectorsToSpan(checkBoxList, vectorsList) {
-	var m = setMatrix(3);
-	for (var i = 0; i < checkBoxList.length; i++) {
-		if (checkBoxList[i].checked) {
-			var x = parseInt(vectorsList[i].xCoord.value);
-			var y = parseInt(vectorsList[i].yCoord.value);
-			var z = parseInt(vectorsList[i].zCoord.value);
-			m[0].push(x);
-			m[1].push(y);
-			m[2].push(z);
-		}
-	}
+function filterRedundancy(m) {
 	var outputMatrix = setMatrix(3);
 	var vectorsProperty = findPivots(m);
 	for (var i = 0; i < vectorsProperty.length; i++) {

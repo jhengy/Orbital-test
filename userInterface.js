@@ -4,6 +4,14 @@ var numVectors = 0; // storet the number of vectors
 var vectorList = []; // store the list of vectors entered by the user
 var checkBoxList = []; // store the list of checkboxes on the Vectors Form
 
+/* global states for span section */
+var numSubps = 0;
+/* an arr containing ref to subpace objs.
+a subsp obj contain  subsp and also basisVectors objects, both of which contain 2 attributes
+: 1. ref to its label 2. graphical obj)  
+*/
+var subspList = []; 
+
 /* register event handlers */
 var addVectorBtn = document.getElementById("addVector");
 addVectorBtn.onclick = addControls;
@@ -14,13 +22,111 @@ renderBtn.onclick = () => { drawAllVectors(vectorList); };
 var deleteVectorBtn = document.getElementById("deleteVector");
 deleteVectorBtn.onclick = deleteLastVector;
 
-// when span button is pressed, plot the vectors
+/* when span button is pressed
+1. wrapping all checked vectors as columns to form a matrix 
+2. if no input/ matrix empty,alert, else create a subspObj, and push it to subspList
+*/
 var spanBtn = document.getElementById("span");
 spanBtn.onclick = () => { 
-  var m = getVectorsToSpan(checkBoxList,vectorList); 
-  printMatrix(m); 
+  /*
+  var checkedVectors = getCheckedVectors(checkBoxList,vectorList);
+  var vectorsToSpan = filterRedundancy(checkedVectors);
+  printMatrix(vectorsToSpan); 
   drawSpan(m);
+  */
+  helper();
 }
+/* 
+when span button is pressed
+1. wrapping all checked vectors as columns to form a matrix 
+2. if 
+a) no input/ matrix empty,alert 
+b) else 
+(i)create a subspObj 
+1. creating labels for vectors, and add it to the subpObj
+2. creating label for plane and add it to the subspObj,
+3.  define onclick events and mousedown and mouseup events for both labels  
+(ii) push the subspObj to the arr
+
+*/
+function helper() {
+  var checkedVectors = getCheckedVectors(checkBoxList,vectorList);
+  if (checkedVectors[0].length == 0) {
+    alert("no vector input!");
+  } else {   
+    numSubps++;
+    var display = document.getElementById("spanTableBody");
+    // a 3*r matrix where 1 <= r <= 3
+    var vectorsToSpan = filterRedundancy(checkedVectors);
+    /*printMatrix(vectorsToSpan); */
+    // array containing ref to graphics
+    var arr = drawSpan(vectorsToSpan);
+
+    // creating subsp obj and adding event handlers
+    var subspGraphic= arr[0];
+    var subspLabel = document.createElement("h1");
+    subspLabel.innerHTML = "Subp: " + numSubps;
+    display.appendChild(subspLabel);
+    var subsp = {
+    label: subspLabel,
+    graphic: subspGraphic
+    };
+    // adding hide/unhide & labelling features
+    subspLabel.onclick = () => {
+      // click once hide, click another time unhide.
+    };
+    // depending on the type of subp, changing the states of material of line, plane, or cube
+    // when mouse move over the label
+    subspLabel.onmousemove = () => {
+
+    };
+    subspLabel.onmouseout = () => {
+
+    };
+
+    // creating basisVectors obj
+    var numVectors = arr.length - 1;
+    var vlabels = [];
+    var vgraphics = [];
+    var basisVectors = {
+      labels: vlabels, // contain ref to labels of correp vectors
+      graphics: vgraphics// contain ref to graphics of correp vectors
+    };
+    // traversing across arr.
+    for (var i = 1; i < arr.length; i++) { 
+      var vGraphic = arr[i];
+      vgraphics.push(vGraphic);
+      var x = vectorsToSpan[0][i-1];
+      var y = vectorsToSpan[1][i-1];
+      var z = vectorsToSpan[2][i-1];
+      var vLabel = document.createElement("h1");
+      vLabel.innerHTML = 
+        "Vector" + numSubps + ": (" + x + ", " 
+        +  y + ", " + z + ")";
+      display.appendChild(vLabel);
+      // adding hide/unhide & labelling features
+      vLabel.onclick = () => {
+        // click once hide, click another time unhide.
+      };
+      // depending on the type of subp, changing the states of material of line, plane, or cube
+      // when mouse move over the label
+      vLabel.onmousemove = () => {
+
+      };
+      vLabel.onmouseout = () => {
+      };
+      vlabels.push(vLabel);
+    }
+
+    //push the newly added subpObj into the list
+    var obj = {
+      subsp : subsp,
+      basisVectors: basisVectors
+    }
+    subspList.push(obj);
+    } 
+}
+
  
 /* add a set of text input boxes representing 1 vector to the web page
    Then, store references to these input boxes in an object and add this object
@@ -130,5 +236,30 @@ function makeInputBox(inputType) {
   textBox.setAttribute("type", inputType);
   
   return textBox;
+}
+
+/*
+precond: 
+checkBoxList: an array containing reference of checkBox element
+vectorsList: an array containing reference of vectorArr
+* all vectors are in 3-space
+postcond: 
+return k checked vectors as columns making up a 3* k matrix
+return a matrix made up of LI vectors as column vectors that's been checked by
+the user
+*/
+function getCheckedVectors(checkBoxList, vectorsList) {
+  var m = setMatrix(3);
+  for (var i = 0; i < checkBoxList.length; i++) {
+    if (checkBoxList[i].checked) {
+      var x = parseInt(vectorsList[i].xCoord.value);
+      var y = parseInt(vectorsList[i].yCoord.value);
+      var z = parseInt(vectorsList[i].zCoord.value);
+      m[0].push(x);
+      m[1].push(y);
+      m[2].push(z);
+    }
+  }
+  return m;
 }
 
