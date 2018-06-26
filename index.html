@@ -54,11 +54,32 @@
             <div id=matricesSideBar class=form>
                 <div id = matricesInputs>
                     <div id = matricesButns>
+                        <button id = vTransform>transformVector</button>
+                        <button id = columnSpace>columnspace</button>
+                        <button id = nullSpace> nullSpace</button>
+                        <button id = eigenSpace> eigenSpace</button>
                     </div>
                     <div id = matricesTextsInputs>
+                        <div id = matrixInput>
+                            <input id = m11> </input>
+                            <input id = m12> </input>
+                            <input id = m13> </input>
+                            <input id = m21> </input>
+                            <input id = m22> </input>
+                            <input id = m23> </input>
+                            <input id = m31> </input>
+                            <input id = m32> </input>
+                            <input id = m33> </input>
+                        </div>
+                        <div id = vectorInput>
+                            <input id = x> </input>
+                            <input id = y> </input>
+                            <input id = z> </input>
+                        </div>
                     </div>
                 </div>
                 <div id = matricesDisplay>
+                    <div id = matricesTextDisplay> </div>
                     <div id = matricesTable>
                         <div id = matricesTableHeader class = tableHeader>
                             <h1>subspace No</h1>
@@ -75,6 +96,7 @@
         <script src="matrix.js"></script>
 		<script src="js/three.js"></script>
   		<script src="js/OrbitControls.js"></script>
+        <script src="js/numeric_1.2.6.js"></script>
 		<script src="graphics.js"></script>
         <script src = "userInterface.js"></script>
 

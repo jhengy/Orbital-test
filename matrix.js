@@ -1,3 +1,14 @@
+/*
+rounding off the number to closest integer if the number is very close to an integer.
+*/
+function roundToNearestInteger(num) {
+	var closeness = Math.abs(num - Math.round(num));
+	if (closeness < 1e-10) {
+		return Math.round(num);
+	} else {
+		return num;
+	}
+}
 
 /*
 precond: m : a 3 * k matrix making up of k column vectors
@@ -173,7 +184,7 @@ function guassianElimination(matrix) {
 
 
 /*
-function mutating m*n matrix by gussian elimination, and then returning a n*3 2D array consisting of n vectors, where row number = column number of the column vector in the original matrix, each row has 3 indices, 0: 1* n 1d row vector  1: boolean indicating if the column is a pivot column, 2: a pair object (x,y) indicating the pivot point coordinate
+function mutating the matrix and returning a n*3 2D array consisting of n vectors, where row number = column number of the column vector in the original matrix, each row has 3 indices, 0: 1* n 1d row vector  1: boolean indicating if the column is a pivot column, 2: a pair object (x,y) indicating the pivot point coordinate
 
 limitation: rounding off error leading to incorrect identification of pivot columns --> resolve by treating numbers close to 0 as 0
 */
@@ -217,8 +228,9 @@ function findPivots(matrix){
 	return output;
 }
 
-/*mutate the matrix by to RREF.
+/*
 precond : m*n matrix
+postcond: mutating the existing matrix to RREF
 limitation: rouding off error --> possible solution: if (Math.abs(x - Math.round(x) < 1E-10) { x = Math.round(x)}
 */
 function guassJordanElimination(matrix) {
@@ -261,10 +273,10 @@ function guassJordanElimination(matrix) {
 
 /* 
 precond: matrix: m*n matrix
-postCond: matrix mutated to REF,
-returning a 2d m*k matrix indicating k column vectors that span the Column space of the matrix. 
+postCond: returning a 2d m*k matrix indicating k column vectors that span the Column space of the matrix. 
 */
-function findColumnSpace(matrix){
+function findColumnSpace(M){
+	var matrix = duplicate(M);
 	//find the pivot columns of the matrix using findPivots, then output the 2d result matrix.
 	var numRows = matrix.length;
 	var numCols = matrix[0].length;
@@ -282,13 +294,13 @@ function findColumnSpace(matrix){
 
 /* 
 precond: m*n matrix
-postcond: matrix mutated to REF. returning a n * k matrix, where n is numOfCol of matrix and k is the number of none- pivot columns, each column of the result is a basis vector of the nullspace 
-
+postcond: returning a n * k matrix, where n is numOfCol of matrix and k is the number of none- pivot columns, each column of the result is a basis vector of the nullspace 
+when k = 0 --> nullspace is a zero space.
 nullspace of a 3*3 matrix: 3 cases: 1 pivot column, 2 pivot columns, 3 pivot columns: an identity matrix in RREF -> nullspace is zero space.
 for the prev 2 cases, can be solved mathematically through RREF, by setting unknowns(algebra). 
 
 */
-function findNullSpace(matrix) {
+function findNullSpace(M) {
 	/*
 	case1: For the case where all columns are pivot columns, the nullspcae is zero space
 	case2: existence of non-pivot columns.
@@ -297,6 +309,7 @@ function findNullSpace(matrix) {
 	1c)solve for unknowns corresponding to the non-pivot columns, by setting arbitray values :set 1 to the row of result matrix, the row correspond to the index of the pivot 
 	2) Solve for unknowns corresponding to the pivot columns, starting from the last pivot row of REF and work backwards, identify the pivot point(i.e. (x1,y1))update row  y1 of the resultant matrix(each row of result matrix represent a linear combination of the unknown correspond to the same column in the original matrix)  
 	*/
+	var matrix = duplicate(M);
 	// a n*3 matrix indicating the analysis of vectors, where n is the number of vectors
 	var vectorsProperty = findPivots(matrix);
 	// 1. find numOfNonPivotCols --> set the matrix where colNum = numOfNonPivotCols and rowNum = colNum of original matrix 2. initialize an array of indicating pivot points, if any. 3) starting from the last column, 3a.initialize "1"s for non-pivot points(arbitray values) in the output matrix 3b. solve for unknowns corresponding to pivot columns 
@@ -313,10 +326,6 @@ function findNullSpace(matrix) {
 		coordinates.push(vectorsProperty[vectorNum][2]);
 	}
 
-	if (numOfNonPivotCols == 0) {
-		console.log("nullspace is a zero space");
-		return;
-	}
 	//initialize matrix of dimension numCols * numOfNonPivotCols 
 	var output = new Array();
 	for (var row = 0; row < numCols; row++) {
@@ -325,6 +334,12 @@ function findNullSpace(matrix) {
 			output[row][col] = 0;
 		}
 	}
+	// if nullspace is a zero space, return an empty 2d array
+	if (numOfNonPivotCols == 0) {
+		console.log("nullspace is a zero space");
+		return output;
+	}
+
 
 	//console.log(output);
 
@@ -362,7 +377,8 @@ function findNullSpace(matrix) {
 precond: m * n vectorMatrix is made up of n -1 linearly independent vectors,i.e. all n columns are pivot columns except the last column
 postcond: return a 1D array/ row vector of size n-1, representing the unique solution/coordinate vector of the redundant vector(last col)
 */ 
-function backSubst(vectorMatrix) {
+function backSubst(vectorMatrixOriginal) {
+	var vectorMatrix = duplicate(vectorMatrixOriginal);
 	var m = vectorMatrix.length;
 	var n = vectorMatrix[0].length;
 	// perform guassianElimination on vectorMatrix and output properties.
@@ -404,15 +420,23 @@ function expressRedundantVector(M) {
 }
 
 /*
-precond: all eigenvalues are real 
+precond: at least one eigenvalue and all eigenvalues are real 
 postcond: returning the eigenvalue of a matrix as a 1d array. if there's no eigenvalue in the real number field, output an array containing 0 as the only element. 
-Note: may have slight rounding off error, can apply Math.round to the result
+Note: may have slight rounding off error,which in turn affects the calculation
+for eigenspaces later, can apply Math.round to the result
 precond: matrix: n*n matrix
 */
 function findEigenValue(matrix) {
 	// numeric.eig(matrix) --> returns an object with 2 fields: lambda and E. lamda field is another object of type T, with field x as a 1d array containing the real component of the root(eigenvalue) and y as another 1d array containing the complex component of the root(eigenvalue).  
 	// a 1d array with possible duplicates, indicating all eigenvalues of the matrix
-	var arr = numeric.eig(matrix).lambda.x;
+	var result = numeric.eig(matrix);
+	// get the real component of the eigenValues
+	var arr = result.lambda.x;
+	// rounding off all numbers close to integer in the arr.
+	for (var i = 0; i < arr.length; i++) {
+		arr[i] = roundToNearestInteger(arr[i]);
+	}
+
 	// function returning a unique arr in sorted order.
 	function removeDuplicates(arr) {
 		arr.sort();
@@ -428,20 +452,20 @@ function findEigenValue(matrix) {
 		}
 		return outputArr;	
 	}
-
 	return removeDuplicates(arr);
 }
 
 /*
-precond: matrix: n*n sq matrix. eigenvalue: a real number eigenvalue of the matrix
+precond: M: n*n sq matrix. eigenvalue: a real number eigenvalue of the matrix
 postcond:returning a m*k matrix,indicating k column vectors as a basis that span the Eigenspace. Note: original matrix will be mutated as a side effect
 */
-function findEigenSpace(matrix,eigenvalue) {
+function findEigenSpace(M,eigenvalue) {
+	var matrix = duplicate(M);
 	// initialize a 2d array with m rows
 	var outArr = setMatrix(matrix.length);
 	// find the nullspace of (ev * I - matrix)
 	for (var p = 0; p < matrix.length; p++) {
-		matrix[p][p] -= currentValue;
+		matrix[p][p] -= eigenvalue;
 	}
 	// finding nullspace associated with the current eigenvalue,
 	// as a 2d matrix, containing column vectors
@@ -452,17 +476,18 @@ function findEigenSpace(matrix,eigenvalue) {
 precond: M : m*n matrix. V: n * 1 matrix representing a column vector from n-space.
 postcond: returning m * 1 2d array, representing the vector Mv, where M is m*n  matrix(2d) and V is the n * 1 matrix(2d).
 */
-function matrixTransformatiom(M,V){
+function vectorTransformatiom(M,V){
 	return multiply(M,V);
 }
 
 /*
-precond: M:  m*n matrix. Vectors: k, column vectors from n-space, represented as a n * k matrix, where each column is a basis vector
+precond: matrix:  m*n matrix. Vectors: k, column vectors from n-space, represented as a n * k matrix, where each column is a basis vector
 postcond: returning restricted range of matrix linear transformation by on a subspace spanned by Vectors
 the restricted range is another subsp(subsp preserved under lt), that is spanned by {Mv1, Mv2}, while both may not be LI.
 */
 
-function restrictedRange(M,Vectors) {
+function restrictedRange(matrix,Vectors) {
+	var M = duplicate(matrix);
 	// M(v1 v2 ..) = (Mv1 Mv2 ....), a matrix consisting of column vectors transformed from basis vectors of the restricted subsp
 	var tranformedVectors = multiply(M,Vectors);
 	printMatrix(tranformedVectors);

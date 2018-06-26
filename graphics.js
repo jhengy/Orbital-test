@@ -134,7 +134,7 @@ function createLine(vector,scale) {
   return allObj;
 }
 
-//function creating v1 and v2 obj and also a plane object  passing through the origin 
+//function creating a plane graphic  passing through the origin 
 function createPlane(v1,v2,sizeOfPlane,color) {
   // unit vector perpendicular to the plane
   var normal = v1.cross(v2).normalize();
@@ -293,4 +293,9 @@ function drawSpan(m) {
 }
 
 
+function enlarge(mesh, scale) {
+  mesh.scale.x *= scale;
+  mesh.scale.y *= scale;
+  mesh.scale.z *= scale;
+}
 
