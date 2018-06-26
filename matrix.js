@@ -11,10 +11,12 @@ function roundToNearestInteger(num) {
 }
 
 /*
-precond: m : a 3 * k matrix making up of k column vectors
-postcond: return a 3 * i matrix made up of i LI vectors as column vectors
+precond: matrix : a 3 * k matrix making up of k column vectors
+postcond: return a 3 * i matrix made up of i LI vectors as column vectors,
+original matrix mutated as a result
 */
-function filterRedundancy(m) {
+function filterRedundancy(matrix) {
+	var m = duplicate(matrix);
 	var outputMatrix = setMatrix(3);
 	var vectorsProperty = findPivots(m);
 	for (var i = 0; i < vectorsProperty.length; i++) {
@@ -295,7 +297,7 @@ function findColumnSpace(M){
 /* 
 precond: m*n matrix
 postcond: returning a n * k matrix, where n is numOfCol of matrix and k is the number of none- pivot columns, each column of the result is a basis vector of the nullspace 
-when k = 0 --> nullspace is a zero space.
+when k = 0/ when 2d arr is empty --> nullspace is a zero space.
 nullspace of a 3*3 matrix: 3 cases: 1 pivot column, 2 pivot columns, 3 pivot columns: an identity matrix in RREF -> nullspace is zero space.
 for the prev 2 cases, can be solved mathematically through RREF, by setting unknowns(algebra). 
 
@@ -484,21 +486,17 @@ function vectorTransformatiom(M,V){
 precond: matrix:  m*n matrix. Vectors: k, column vectors from n-space, represented as a n * k matrix, where each column is a basis vector
 postcond: returning restricted range of matrix linear transformation by on a subspace spanned by Vectors
 the restricted range is another subsp(subsp preserved under lt), that is spanned by {Mv1, Mv2}, while both may not be LI.
+return a m * i matrix where i is the number of basis vectors spanning the restricted space.
+when i is 0, it is a zero space.
 */
 
-function restrictedRange(matrix,Vectors) {
+function findRestrictedRange(matrix,Vectors) {
 	var M = duplicate(matrix);
 	// M(v1 v2 ..) = (Mv1 Mv2 ....), a matrix consisting of column vectors transformed from basis vectors of the restricted subsp
 	var tranformedVectors = multiply(M,Vectors);
 	printMatrix(tranformedVectors);
 	// remove redundant vectors and output the resultant 
-	var vectorsProperty = findPivots(tranformedVectors);
-	var outputMatrix = setMatrix(M.length);
-	for (var i = 0; i < vectorsProperty.length; i++) {
-		if (vectorsProperty[i][1]) {
-			appendColumn(outputMatrix,vectorsProperty[i][0]);
-		}
-	}
+	var outputMatrix = filterRedundancy(tranformedVectors);
 	printMatrix(outputMatrix);
 	return outputMatrix;
 }

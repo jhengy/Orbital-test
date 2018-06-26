@@ -4,16 +4,8 @@ var numVectors = 0; // storet the number of vectors
 var vectorList = []; // store the list of vectors entered by the user
 var checkBoxList = []; // store the list of checkboxes on the Vectors Form
 
-/* global states for span section */
-var numSubps = 0;
-/* an arr containing ref to subpace objs.
-a subsp obj contain  subsp and also basisVectors objects, both of which contain 2 attributes
-: 1. ref to its label 2. graphical obj)  
-*/
-var subspList = [];
 
-/* arr caching all info for matrices section */ 
-var matricesList= [];
+/*------------------VECTORS SECTION-------------------------------*/
 
 /* register event handlers */
 var addVectorBtn = document.getElementById("addVector");
@@ -89,6 +81,16 @@ function addControls() {
       allObjects.add(vectorObj.graphic);
     }
   };
+
+  vectorLabel.onmouseover = () => {
+      console.log("enlarged");
+      scale(vectorObj.graphic,2);
+    };
+    
+  vectorLabel.onmouseleave = () => {
+      console.log("smallened");
+      scale(vectorObj.graphic,0.5);
+    };
     
 }
 
@@ -136,15 +138,57 @@ function makeInputBox(inputType) {
   return textBox;
 }
 
+
+
+
+/*------------------SPANS SECTION-------------------------------*/
+
+function addLabelEffects(labelElement, graphic) {
+    // adding hide/unhide & labelling features
+    labelElement.onclick = () => {
+      /*
+      // click once hide, click another time unhide.
+      var opac = window.getComputedStyle(labelElement).getPropertyValue("opacity");
+      if (opac === "1") {
+        labelElement.style.opacity = "0.5";
+        graphic.visible = false;
+      } else {
+        labelElement.style.opacity = "1";
+        graphic.visible = true;
+      }
+      */
+    };
+    
+    // depending on the type of subp, changing the states of material of line, plane, or cube
+    // when mouse move over the label
+    labelElement.onmouseover = () => {
+      console.log("enlarged");
+      scale(graphic,2);
+    };
+
+    labelElement.onmouseleave = () => {
+      console.log("smallened");
+      scale(graphic,0.5);
+    };
+}
+
+/* global states for span section */
+var numSubps = 0;
+/* an arr containing ref to subpace objs.
+a subsp obj contain  subsp and also basisVectors objects, both of which contain 2 attributes
+: 1. ref to its label 2. graphical obj)  
+*/
+var subspList = [];
+
 /*
 precond: 
 checkBoxList: an array containing reference of checkBox element
 vectorsList: an array containing reference of vectorArr
 * all vectors are in 3-space
 postcond: 
-return k checked vectors as columns making up a 3* k matrix
-return a matrix made up of LI vectors as column vectors that's been checked by
-the user
+return k checked vectors as columns making up a 3* k matrix, if no checked vectors,
+return empty matrix
+
 */
 function getCheckedVectors(checkBoxList, vectorsList) {
   var m = setMatrix(3);
@@ -194,7 +238,7 @@ function spanBtnhelper() {
     var vectorsToSpan = filterRedundancy(checkedVectors);
     /*printMatrix(vectorsToSpan); */
     // array containing ref to graphics
-    var arr = drawSpan(vectorsToSpan);
+    var arr = drawSpan(vectorsToSpan,spanGraphics);
 
     // creating subsp obj and adding event handlers
     var subspGraphic= arr[0];
@@ -205,18 +249,9 @@ function spanBtnhelper() {
     label: subspLabel,
     graphic: subspGraphic
     };
-    // adding hide/unhide & labelling features
-    subspLabel.onclick = () => {
-      // click once hide, click another time unhide.
-    };
-    // depending on the type of subp, changing the states of material of line, plane, or cube
-    // when mouse move over the label
-    subspLabel.onmousemove = () => {
 
-    };
-    subspLabel.onmouseout = () => {
-
-    };
+    // adding eventListener to subspLabel
+    addLabelEffects(subspLabel, subspGraphic);
 
     // creating basisVectors obj
     var numVectors = arr.length - 1;
@@ -239,16 +274,7 @@ function spanBtnhelper() {
         +  y + ", " + z + ")";
       display.appendChild(vLabel);
       // adding hide/unhide & labelling features
-      vLabel.onclick = () => {
-        // click once hide, click another time unhide.
-      };
-      // depending on the type of subp, changing the states of material of line, plane, or cube
-      // when mouse move over the label
-      vLabel.onmousemove = () => {
-
-      };
-      vLabel.onmouseout = () => {
-      };
+      addLabelEffects(vLabel, vGraphic);
       vlabels.push(vLabel);
     }
 
@@ -259,4 +285,230 @@ function spanBtnhelper() {
     }
     subspList.push(obj);
     } 
+}
+
+
+/*------------------MATRICES SECTION-------------------------------*/
+/* obj caching all info for matrices section , may need to modify it*/ 
+
+var matricesObj= {
+  matrix: { m11: document.getElementById("m11"), m12: document.getElementById("m12"), m13: document.getElementById("m13"),
+            m21: document.getElementById("m21"), m22: document.getElementById("m22"), m23: document.getElementById("m23"),
+            m31: document.getElementById("m31"), m32: document.getElementById("m32"), m33: document.getElementById("m33") },
+  vector: {x: document.getElementById("x"), y: document.getElementById("y"), z: document.getElementById("z")},
+  transformedVector: {coordinate: [], label: undefined, graphic: undefined },
+  columnSpace: {subsp: {label: undefined, graphic: undefined}, 
+                basisVectors: {labels: [], graphics: []}},
+  nullSpace: {subsp: {label: undefined, graphic: undefined}, 
+              basisVectors: {labels: [], graphics: []}},
+  transformedSubspace: {subsp: {label: undefined, graphic: undefined}, 
+                        basisVectors: {labels: [], graphics: []}},
+  eigenValues: [],
+  eigenSpaces: []
+};
+
+// function checking if a matrix contain NaN
+function hasNaN(m) {
+  for (var i =0; i < m.length; i++) {
+    for (var j = 0; j < m[0].length; j++) {
+      if (isNaN(m[i][j])) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+// function retrieving matrix in a 2d array, if there exists no input, return NaN 
+function getMatrix(){
+  var m = setMatrix(3);
+  m[0][0] = parseFloat(matricesObj.matrix.m11.value);
+  m[0][1] = parseFloat(matricesObj.matrix.m12.value); 
+  m[0][2] = parseFloat(matricesObj.matrix.m13.value);
+  m[1][0] = parseFloat(matricesObj.matrix.m21.value); 
+  m[1][1] = parseFloat(matricesObj.matrix.m22.value);
+  m[1][2] = parseFloat(matricesObj.matrix.m23.value);
+  m[2][0] = parseFloat(matricesObj.matrix.m31.value); 
+  m[2][1] = parseFloat(matricesObj.matrix.m32.value); 
+  m[2][2] = parseFloat(matricesObj.matrix.m33.value);
+
+    return m;
+  
+}
+// retrieving the 3*1 vector as a column vector in 2d, if encounter empty input, return NaN
+function getVector() {
+  var m = setMatrix(3);
+  m[0][0] = parseFloat(matricesObj.vector.x.value);
+  m[1][0] = parseFloat(matricesObj.vector.y.value); 
+  m[2][0] = parseFloat(matricesObj.vector.z.value);
+
+  return m;
+
+}
+
+/*adding event listeners for vTransform butn.
+when butn is pressed,
+1. create vector graphic and vector label, add eventListeners to the label
+*/
+var tranformBtn = document.getElementById("vTransform");
+tranformBtn.onclick = () => {
+  tranformVButnhelper();
+}
+
+function tranformVButnhelper() {
+  //update the coordinate attribute of the transformedVector field 
+  var currentMatrix = getMatrix();
+  if (hasNaN(currentMatrix)) {
+    alert("please fill in all fields in the matrix inputs");
+    return;
+  }
+  var currentVector = getVector();
+  if (hasNaN(currentVector)) {
+    alert("please fill in all fields in the vector inputs");
+    return;
+  }
+  var currentResult = multiply(currentMatrix,currentVector);
+  var vectorArr = matricesObj.transformedVector.coordinate;
+  for (var i = 0; i < 3; i++) {
+    vectorArr[0] = currentResult[0][0];
+    vectorArr[1] = currentResult[1][0];
+    vectorArr[2] = currentResult[2][0];
+  }
+
+  // add graphic
+  var graphic = drawOneVector(vectorArr[0],vectorArr[1],vectorArr[2],0x000000,matricesGraphics);
+  matricesObj.transformedVector.graphic = graphic;
+
+  // add label and its eventListener
+  var display = document.getElementById("matricesTextDisplay");
+  var label = document.createElement("h1");
+  label.innerHTML = "VectorTransformed to: (" + vectorArr[0]+ ", "+ vectorArr[1]+ ", " + vectorArr[2] + ")";  
+  display.appendChild(label);
+  matricesObj.transformedVector.label = label;
+  addLabelEffects(label,graphic);
+}
+
+
+/* adding event listeners for buttons involving generating subspaces */
+/*
+a series of functions transforming the matrix into subspaces: 1. columnSpace 2. nullSpace
+3. restricted subpace 
+precond: f --> function returning a 3*i matrix containing basis vectors of the subsp
+postcond: 
+a.if zero space, alert user ,else
+b.create subpObj and then update it in the respective fields of matricesObj. 
+1. assign subsp attributes: subsp: {label: undefined, graphic: undefined}
+2. assign basisVectors attribute: basisVectors: {labels: [], graphics: []}}
+and fill in respective attributes 2. update it to matricesObj
+
+problem: how to apply it to eigenspace?(eigenspace is a bit more complicated need the selection )
+*/
+function helper(vectorsToSpan, display, type, typeObj) { // typeObj: an attribute of matricesObj, ie.matricesObj.nullSpace
+  // if basisVectors is empty then, it's a zero space
+  if (vectorsToSpan[0].length == 0) {
+    alert("a zero space!");
+  } else {
+    // return an arr with first index as the ref to subsp graphic and behind ref to basis vectors in order
+    var resultArr= drawSpan(vectorsToSpan, matricesGraphics);
+    
+    // subsp section
+    //creating and assigning label and graphic attribute of subsp
+    var subspGraphic = resultArr[0];
+    typeObj.subsp.graphic = subspGraphic;
+    var subspLabel = document.createElement("h1");
+    typeObj.subsp.label = subspLabel;
+    subspLabel.innerHTML = type;
+    display.appendChild(subspLabel);
+    //add eventListner to label and graphic pair
+    addLabelEffects(subspLabel,subspGraphic);
+
+
+    // basisVectors section
+    for (var i = 1; i < resultArr.length; i++) {
+      // for each basisVector in order, creating an assigning label and graphic ref
+      var currentVGraphic = resultArr[i];
+      typeObj.basisVectors.graphics[i - 1] = currentVGraphic;
+      var currentVLabel = document.createElement("h1");
+      typeObj.basisVectors.labels[i - 1] = currentVLabel;
+      currentVLabel.innerHTML = "Vector"+ i+ ": ("+vectorsToSpan[0][i - 1]+", " + 
+                                vectorsToSpan[1][i - 1]+ ", "+vectorsToSpan[2][i - 1] + ")";
+      display.appendChild(currentVLabel);
+
+      //add eventListener to label graphic pair
+      addLabelEffects(currentVLabel, currentVGraphic);
+    }
+  }
+}
+
+
+
+/* columnSpaceBtn
+columnSpace: {subsp: {label: undefined, graphic: undefined}, 
+                basisVectors: {labels: [], graphics: []}},
+1. add in graphic and labels(with event helper)
+*/
+var columnSpaceBtn = document.getElementById("columnSpace");
+columnSpaceBtn.onclick = () => {
+  columnSpaceButnhelper();
+}
+
+function columnSpaceButnhelper(){
+  var currentMatrix = getMatrix();
+  if (hasNaN(currentMatrix)) {
+    alert("please fill in all fields in the matrix inputs");
+    return;
+  }
+  var display = document.getElementById("matricesTableBody");
+  // assign subsp and basisVectors attributes
+  helper(findColumnSpace(currentMatrix), display, "columnSpace", matricesObj.columnSpace);
+}
+
+
+/* nullSpaceBtn
+  nullSpace: {subsp: {label: undefined, graphic: undefined}, 
+              basisVectors: {labels: [], graphics: []}},
+*/
+var nullSpaceBtn = document.getElementById("nullSpace");
+nullSpaceBtn.onclick = () => {
+  nullSpaceButnhelper();
+}
+
+function nullSpaceButnhelper(){
+  var currentMatrix = getMatrix();
+  if (hasNaN(currentMatrix)) {
+    alert("please fill in all fields in the matrix inputs");
+    return;
+  }
+  var display = document.getElementById("matricesTableBody");
+  // assign subsp and basisVectors attributes
+  helper(findNullSpace(currentMatrix), display, "nullSpace", matricesObj.nullSpace);
+}
+
+
+/* transformedSubspaceBtn
+transformedSubspace: {subp: {label: undefined, graphic: undefined}, 
+                        basisVectors: {labels: [], graphics: []}},
+*/
+var transformSubspBtn = document.getElementById("transformSubspace");
+transformSubspBtn.onclick = () => {
+  transformSubspButnhelper();
+}
+
+function transformSubspButnhelper() {
+  var currentMatrix = getMatrix();
+  if (hasNaN(currentMatrix)) {
+    alert("please fill in all fields in the matrix inputs");
+    return;
+  }
+
+  var display = document.getElementById("matricesTableBody");
+
+  var checkedVectors = getCheckedVectors(checkBoxList,vectorList);
+  if (checkedVectors[0].length == 0) {
+    alert("no subspace to be tranformed, please check vectors under the Vectors Tab to generate a subspace");
+    return;
+  }
+  // original set of basis vectors of the subspace as a 3 * r matrix
+  var originalBasis = filterRedundancy(checkedVectors);
+  // assign subsp and basisVectors attributes
+  helper(findRestrictedRange(currentMatrix,originalBasis), display, "nullSpace", matricesObj.nullSpace); 
 }

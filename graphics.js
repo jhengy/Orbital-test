@@ -4,7 +4,10 @@ var allObjects = new THREE.Object3D;
 
 /*a separate var storing ref to an obj3d for containing all graphical elements 
  related to the span section */
-var subspaceObjs = new THREE.Object3D;
+var spanGraphics = new THREE.Object3D;
+/*a separate var storing ref to an obj3d for containing all graphical elements 
+ related to the matrices section */
+var matricesGraphics = new THREE.Object3D;
 
 init();
 animate();
@@ -43,7 +46,8 @@ function init() {
 
 
   axes.add(allObjects);
-  axes.add(subspaceObjs);
+  axes.add(spanGraphics);
+  axes.add(matricesGraphics);
   scene.add(axes);
 
   // create labels for axes
@@ -109,7 +113,7 @@ function createVector(x,y,z,origin,hex) {
 
   var arrowHelper = new THREE.ArrowHelper( direction, origin, length, hex);
   arrowHelper.line.material.linewidth = 3; // set width of the vector
-  return arrowHelper
+  return arrowHelper;
 }
 
 // function creating a line graphic spanned by the vector 
@@ -202,6 +206,14 @@ function lc(a,b,v1,v2) {
   return allObjects;
 }
 
+/* plot one vector onto a particular container in the canvas
+ and return reference to the 3d graphicObj*/
+function drawOneVector(x,y,z,hex, container) {
+  var graphic = createVector(x,y,z,new THREE.Vector3(0,0,0),hex);
+  container.add(graphic);
+  return graphic;
+}
+
 /* read the vectorStack and draw the vectors on the grid */
 function drawAllVectors(vectorQueue) {
   // first, clear existing vectors
@@ -224,11 +236,11 @@ function drawAllVectors(vectorQueue) {
 }
 
 /*
-precond: m: 3 * n matrix of n LI column vectors, where n = [0,1,2,3] 
+precond: m: 3 * n matrix of n LI column vectors, where  1<= n <= 3 container: the Object3D to put all graphics generated into
 postcond : generating graphics of vectors and subsp in the canvas, then return an array containing 
 their ref. index 0: ref to subp graphic ; >=index 1 : reference to basis vectors(orders are preserved)  
  */
-function drawSpan(m) {
+function drawSpan(m,container) {
   var arr = [];
   var obj = new THREE.Object3D();
   // identify the number of vectors to span
@@ -238,7 +250,7 @@ function drawSpan(m) {
     var y = m[1][0];
     var z = m[2][0];
     var v = createVector(x,y,z,new THREE.Vector3(0,0,0),0x000000);
-    var line = createLine(new THREE.Vector3(x,y,z),50);
+    var line = createLine(new THREE.Vector3(x,y,z),20);
     arr.push(line);
     arr.push(v);
     obj.add(line);
@@ -287,15 +299,16 @@ function drawSpan(m) {
     obj.add(v3);
   }
   //adding graphics into subpaceObjs
-  subspaceObjs.add(obj); 
+  container.add(obj); 
 
   return arr;
 }
 
-
-function enlarge(mesh, scale) {
-  mesh.scale.x *= scale;
-  mesh.scale.y *= scale;
-  mesh.scale.z *= scale;
+/* function enlarging the object by a certain factor */
+function scale(mesh, factor) {
+  mesh.scale.x *= factor;
+  mesh.scale.y *= factor;
+  mesh.scale.z *= factor;
 }
+
 
