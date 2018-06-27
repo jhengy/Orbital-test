@@ -22,16 +22,24 @@
   z-index: 2; /* the menu being hovered upon should rise above the other menus */
 }
 
+.label:hover {
+  font-size: 50;
+  background-color: yellow;
+}
+
+
 #vectorsMenu {
 top: 20%;
 }
 
 #spansMenu {
 top: 40%;
+/*left: 56%;*/
 }
 
 #matricesMenu {
 top: 60%;
+/*left: 56%;*/
 }
 
 
@@ -61,6 +69,97 @@ top: 60%;
 
     font-size:8px;
 
+}
+
+
+#spanTable {
+  background-color: green;
+  border: 2px solid black;
+
+  display: grid;
+
+  font-size:8px;
 
 }
+
+
+#spanTableHeader {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-column-gap: 1%;
+}
+
+#spanTableBody {
+  display: grid;
+  grid-template-columns: auto auto ;
+  grid-column-gap: 1%; 
+}
+
+
+#matricesInputs {
+  background-color: yellow;
+  border: 2px solid black;
+
+  font-size:8px;
+}
+#matricesButns {
+
+}
+#eigenValueSelector {
+
+}
+#matricesTextsInputs {
+  display: grid ;
+  grid-template-columns: 66% auto;
+  grid-column-gap: 1%;
+}
+
+#matricesTextsInputs input {
+  width : 145px;
+}
+#matrixInput {
+  border: 2px solid black;
+  grid-template-columns: auto auto auto;
+  grid-column-gap: 1%;
+}
+
+#vectorInput {
+  border: 2px solid black;
+}
+
+#matricesDisplay {
+  background-color: yellow;
+  border: 2px solid black;
+
+  font-size:8px;
+}
+#matricesTextDisplay {
+
+}
+#matricesTable {
+  background-color: green;
+  border: 2px solid black;
+
+  display: grid;
+
+  font-size:8px;
+}
+
+#matricesTableHeader {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-column-gap: 1%;
+}
+#matricesTableBody {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-column-gap: 1%;
+}
+
+
+
+
+
+
+
 

@@ -250,7 +250,7 @@ function drawSpan(m,container) {
     var y = m[1][0];
     var z = m[2][0];
     var v = createVector(x,y,z,new THREE.Vector3(0,0,0),0x000000);
-    var line = createLine(new THREE.Vector3(x,y,z),20);
+    var line = createLine(new THREE.Vector3(x,y,z),36);
     arr.push(line);
     arr.push(v);
     obj.add(line);

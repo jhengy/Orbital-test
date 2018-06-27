@@ -32,6 +32,7 @@ function addControls() {
   // create a label representing the new vector
   var vectorLabel = document.createElement("h1");
   vectorLabel.innerHTML = "Vector " + numVectors;
+  vectorLabel.setAttribute("class","label");
   vectorsInnerForm.appendChild(vectorLabel);
   
   // create and add 4 textboxes
@@ -146,7 +147,7 @@ function makeInputBox(inputType) {
 function addLabelEffects(labelElement, graphic) {
     // adding hide/unhide & labelling features
     labelElement.onclick = () => {
-      /*
+      
       // click once hide, click another time unhide.
       var opac = window.getComputedStyle(labelElement).getPropertyValue("opacity");
       if (opac === "1") {
@@ -156,7 +157,7 @@ function addLabelEffects(labelElement, graphic) {
         labelElement.style.opacity = "1";
         graphic.visible = true;
       }
-      */
+      
     };
     
     // depending on the type of subp, changing the states of material of line, plane, or cube
@@ -244,6 +245,7 @@ function spanBtnhelper() {
     var subspGraphic= arr[0];
     var subspLabel = document.createElement("h1");
     subspLabel.innerHTML = "Subp: " + numSubps;
+    subspLabel.setAttribute("class", "label");
     display.appendChild(subspLabel);
     var subsp = {
     label: subspLabel,
@@ -261,6 +263,9 @@ function spanBtnhelper() {
       labels: vlabels, // contain ref to labels of correp vectors
       graphics: vgraphics// contain ref to graphics of correp vectors
     };
+    // a place holder for labels
+    var vlabelContainer = document.createElement("div");
+
     // traversing across arr.
     for (var i = 1; i < arr.length; i++) { 
       var vGraphic = arr[i];
@@ -269,15 +274,17 @@ function spanBtnhelper() {
       var y = vectorsToSpan[1][i-1];
       var z = vectorsToSpan[2][i-1];
       var vLabel = document.createElement("h1");
+      // setting the vLabel to be of class "label"
+      vLabel.setAttribute("class", "label");
       vLabel.innerHTML = 
         "Vector" + i + ": (" + x + ", " 
         +  y + ", " + z + ")";
-      display.appendChild(vLabel);
+      vlabelContainer.appendChild(vLabel);
       // adding hide/unhide & labelling features
       addLabelEffects(vLabel, vGraphic);
       vlabels.push(vLabel);
     }
-
+    display.appendChild(vlabelContainer);
     //push the newly added subpObj into the list
     var obj = {
       subsp : subsp,
@@ -291,11 +298,12 @@ function spanBtnhelper() {
 /*------------------MATRICES SECTION-------------------------------*/
 /* obj caching all info for matrices section , may need to modify it*/ 
 
+// initializing the object
 var matricesObj= {
-  matrix: { m11: document.getElementById("m11"), m12: document.getElementById("m12"), m13: document.getElementById("m13"),
-            m21: document.getElementById("m21"), m22: document.getElementById("m22"), m23: document.getElementById("m23"),
-            m31: document.getElementById("m31"), m32: document.getElementById("m32"), m33: document.getElementById("m33") },
-  vector: {x: document.getElementById("x"), y: document.getElementById("y"), z: document.getElementById("z")},
+  matrix:  [[document.getElementById("m11"), document.getElementById("m12"), document.getElementById("m13")],
+            [document.getElementById("m21"), document.getElementById("m22"), document.getElementById("m23")],
+            [document.getElementById("m31"), document.getElementById("m32"), document.getElementById("m33")]],
+  vector: [document.getElementById("x"), document.getElementById("y"), document.getElementById("z")],
   transformedVector: {coordinate: [], label: undefined, graphic: undefined },
   columnSpace: {subsp: {label: undefined, graphic: undefined}, 
                 basisVectors: {labels: [], graphics: []}},
@@ -306,6 +314,7 @@ var matricesObj= {
   eigenValues: [],
   eigenSpaces: []
 };
+
 
 // function checking if a matrix contain NaN
 function hasNaN(m) {
@@ -318,31 +327,24 @@ function hasNaN(m) {
   }
   return false;
 }
-// function retrieving matrix in a 2d array, if there exists no input, return NaN 
+// function retrieving 3 * 3 matrix in a 2d array, if there exists no input, return NaN 
 function getMatrix(){
   var m = setMatrix(3);
-  m[0][0] = parseFloat(matricesObj.matrix.m11.value);
-  m[0][1] = parseFloat(matricesObj.matrix.m12.value); 
-  m[0][2] = parseFloat(matricesObj.matrix.m13.value);
-  m[1][0] = parseFloat(matricesObj.matrix.m21.value); 
-  m[1][1] = parseFloat(matricesObj.matrix.m22.value);
-  m[1][2] = parseFloat(matricesObj.matrix.m23.value);
-  m[2][0] = parseFloat(matricesObj.matrix.m31.value); 
-  m[2][1] = parseFloat(matricesObj.matrix.m32.value); 
-  m[2][2] = parseFloat(matricesObj.matrix.m33.value);
-
-    return m;
-  
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; j++) {
+      m[i][j] = parseFloat(matricesObj.matrix[i][j].value);
+    }
+  }
+  return m;
 }
+
 // retrieving the 3*1 vector as a column vector in 2d, if encounter empty input, return NaN
 function getVector() {
   var m = setMatrix(3);
-  m[0][0] = parseFloat(matricesObj.vector.x.value);
-  m[1][0] = parseFloat(matricesObj.vector.y.value); 
-  m[2][0] = parseFloat(matricesObj.vector.z.value);
-
+  for (var i = 0; i < 3; i++) {
+    m[i][0] = parseFloat(matricesObj.vector[i].value);
+  }
   return m;
-
 }
 
 /*adding event listeners for vTransform butn.
@@ -382,6 +384,7 @@ function tranformVButnhelper() {
   var display = document.getElementById("matricesTextDisplay");
   var label = document.createElement("h1");
   label.innerHTML = "VectorTransformed to: (" + vectorArr[0]+ ", "+ vectorArr[1]+ ", " + vectorArr[2] + ")";  
+  label.setAttribute("class","label");
   display.appendChild(label);
   matricesObj.transformedVector.label = label;
   addLabelEffects(label,graphic);
@@ -417,12 +420,15 @@ function helper(vectorsToSpan, display, type, typeObj) { // typeObj: an attribut
     var subspLabel = document.createElement("h1");
     typeObj.subsp.label = subspLabel;
     subspLabel.innerHTML = type;
+    subspLabel.setAttribute("class", "label");
     display.appendChild(subspLabel);
     //add eventListner to label and graphic pair
     addLabelEffects(subspLabel,subspGraphic);
 
 
     // basisVectors section
+    // a place holder for labels
+    var vlabelContainer = document.createElement("div");
     for (var i = 1; i < resultArr.length; i++) {
       // for each basisVector in order, creating an assigning label and graphic ref
       var currentVGraphic = resultArr[i];
@@ -431,11 +437,13 @@ function helper(vectorsToSpan, display, type, typeObj) { // typeObj: an attribut
       typeObj.basisVectors.labels[i - 1] = currentVLabel;
       currentVLabel.innerHTML = "Vector"+ i+ ": ("+vectorsToSpan[0][i - 1]+", " + 
                                 vectorsToSpan[1][i - 1]+ ", "+vectorsToSpan[2][i - 1] + ")";
-      display.appendChild(currentVLabel);
+      currentVLabel.setAttribute("class", "label");
+      vlabelContainer.appendChild(currentVLabel);
 
       //add eventListener to label graphic pair
       addLabelEffects(currentVLabel, currentVGraphic);
     }
+    display.appendChild(vlabelContainer);
   }
 }
 
@@ -512,3 +520,87 @@ function transformSubspButnhelper() {
   // assign subsp and basisVectors attributes
   helper(findRestrictedRange(currentMatrix,originalBasis), display, "nullSpace", matricesObj.nullSpace); 
 }
+
+
+/* eigenvalue and eigenvector butns */
+
+/* add eventListener to eigenValues Butn
+1. find the arr of eigenValues --> if no real eigenvalue, alert, else
+2. assign eigenValueArr into matricesObj.eigenValues: [] and at the same time create 
+Option element with value as eigenvalue and add it to the eigenValueSelector element
+*/
+var eigenValueSelector = document.getElementById("evSelector");
+var eigenValuesBtn = document.getElementById("eigenValues");
+eigenValuesBtn.onclick = () => {
+  eigenValuesBtnhelper();
+}
+
+function eigenValuesBtnhelper() {
+  var currentMatrix = getMatrix();
+  if (hasNaN(currentMatrix)) {
+    alert("please fill in all fields in the matrix inputs");
+    return;
+  }
+  var selector = document.getElementById("evSelector");
+  //check if there is already an option element in selector, if so clear it
+  if(selector.length != 0) {
+    var length = selector.length;
+    for (var j = 0; j < length; j++) {
+      //console.log("counter++");
+      selector.remove(0);
+    }
+  }
+  // assign fields
+  var eigenValues = findEigenValue(currentMatrix);
+  matricesObj.eigenValues = eigenValues;
+  //create Option element with value as eigenvalue and add it to the eigenValueSelector element
+  for (var i = 0; i < eigenValues.length; i++) {
+    var value = eigenValues[i];
+    var option = document.createElement("option");
+    option.setAttribute("value", "" + value);
+    option.innerHTML = "" + value;
+    selector.appendChild(option);
+  }
+
+}
+
+
+// function returning an object with selected eigenvalue as a float and index of 
+//the corresponding eigenValue in the eigenvalue arr under matricesObj.eigenValues
+function findSelectedEigenValue() {
+  var selector = document.getElementById("evSelector");
+  var index = parseInt(selector.selectedIndex);
+  var value = parseFloat(selector.value)
+  return {value:value , index: index};
+}
+
+/*eigenSpaceBtn
+1. based on an eigenValue and matrix, output the matrix representing basis vectors to span
+2. with helper function, create an subsp object and assign it to matricesObj.eigenSpaces at the correct index
+*/
+var eigenSpaceBtn = document.getElementById("eigenSpace");
+eigenSpaceBtn.onclick = () => {
+  var valueObj = findSelectedEigenValue();
+  eigenSpaceBtnHelper(valueObj);
+}
+// valueObj: eigenValue and corresponding index of the subspace to be added.
+function eigenSpaceBtnHelper(valueObj) {
+  var M = getMatrix();
+  if (hasNaN(M)) {
+    alert("please fill in all fields in the matrix inputs");
+    return;
+  } 
+  var eigenValue = valueObj.value;
+  var display = document.getElementById("matricesTableBody");
+  // get reference to the subspObj of this eigenspace at the ith index of matricesObj.eigenSpaces
+  var subspObj = {subsp: {label: undefined, graphic: undefined}, 
+                basisVectors: {labels: [], graphics: []}};
+  matricesObj.eigenSpaces[valueObj.index] = subspObj;
+
+  var vectorsToSpan = findEigenSpace(M,eigenValue);
+  // adding labels and graphics to fields subsp and basisVectors of subspObj
+  helper(vectorsToSpan,display, "EigenSpace", subspObj);
+}
+
+
+

@@ -422,11 +422,12 @@ function expressRedundantVector(M) {
 }
 
 /*
-precond: at least one eigenvalue and all eigenvalues are real 
-postcond: returning the eigenvalue of a matrix as a 1d array. if there's no eigenvalue in the real number field, output an array containing 0 as the only element. 
-Note: may have slight rounding off error,which in turn affects the calculation
-for eigenspaces later, can apply Math.round to the result
 precond: matrix: n*n matrix
+postcond: returning the eigenvalue of a matrix as a 1d array.
+if there's no eigenvalue in the real number field, output an empty array
+
+Note: may have slight rounding off error,which in turn affects the calculation
+for eigenspaces later, so apply Math.round to the result
 */
 function findEigenValue(matrix) {
 	// numeric.eig(matrix) --> returns an object with 2 fields: lambda and E. lamda field is another object of type T, with field x as a 1d array containing the real component of the root(eigenvalue) and y as another 1d array containing the complex component of the root(eigenvalue).  
@@ -434,12 +435,18 @@ function findEigenValue(matrix) {
 	var result = numeric.eig(matrix);
 	// get the real component of the eigenValues
 	var arr = result.lambda.x;
+	//get complex component of the eigenvalues and see if there is any value, if so, return an empty array
+	var arrComplex = result.lambda.y;
+	if (arrComplex != undefined) {
+		return [];
+	}
+
 	// rounding off all numbers close to integer in the arr.
 	for (var i = 0; i < arr.length; i++) {
 		arr[i] = roundToNearestInteger(arr[i]);
 	}
 
-	// function returning a unique arr in sorted order.
+	// function returning a unique arr in sorted order, original arr mutated as side effect
 	function removeDuplicates(arr) {
 		arr.sort();
 		var outputArr = new Array();
