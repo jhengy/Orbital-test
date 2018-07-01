@@ -1,110 +1,170 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset=utf-8>
-		<title>visual-vector</title>
+    <head>
+        <meta charset=utf-8>
+        <title>visual-vector</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/button.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/checkbox.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/checkbox.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/icon.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/input.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/menu.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/dropdown.min.css" /> 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/grid.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/table.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/popup.css" />
+
+        
+        
         <link rel="stylesheet" href="admin.css"/>
         <link rel="stylesheet" href="toolbars.css"/>
-	</head>
-	<body>
+        
+    
+    <!--
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/semantic.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/semantic.min.js"></script>
+        <link rel="stylesheet" href="admin.css"/>
+        <link rel="stylesheet" href="toolbars.css"/>
+    -->
+    
+    </head>
+    <body>
         
         <div id="navBar">
+        	<img src="logo_darkBlue.jpg" alt="V3ctor logo" style = "width :8%; height: 100%">;
             
         </div>
         
-        <div id=vectorsMenu class=menu> 
+        <div id=vectorsMenu class=menus> 
             <text>Vectors</text>
             <div id=vectorsForm class=form>
-                    <button id="addVector" > Add Vector </button>
-                    <button id="deleteVector"> Delete Vector </button>
-                    <button id="renderVectors"> Draw Vectors </button>
-                    <button id="animateCombo"> Animate Linear Combo </button>
-                <div id=vectorsInnerForm>
-                    <h1>    </h1>
-                    <h1> X: </h1>
-                    <h1> Y: </h1>
-                    <h1> Z: </h1>
-                    <h1> Coefficient </h1>
-                    <h1> Include in Span </h1>
-                </div> 
+                    <button id="addVector" class="ui labeled icon button" data-tooltip="Add Vector" data-position="bottom right"> Add Vector 
+                        <i class="plus icon"></i>
+                    </button>
+                    <button id="deleteVector" class="ui icon button">
+                        <i class="trash icon"></i>
+                    </button>
+                    <button id="renderVectors" class="ui labeled icon button"> Draw Vectors
+                        <i class="pencil alternate icon"></i>                       
+                    </button>
+                    <button id="animateCombo" class="ui button"> Animate Linear Combo </button>
+                    <div id=vectorsInnerForm>
+                        <h1>    </h1>
+                        <h1> X: </h1>
+                        <h1> Y: </h1>
+                        <h1> Z: </h1>
+                        <h1> Coefficient </h1>
+                        <h1> Include in Span </h1>
+                    </div> 
             </div>
         </div>
 
-        <div id=spansMenu class=menu> 
+        <div id=spansMenu class=menus> 
             <text> Spans </text>
             <div id= spanSideBar class=form>
                 <div id = spanInputs >
-                    <button id = "span"> span </button>
+                    <button id = "span" class="ui labeled icon button"> span 
+                        <i class = "paint brush icon"> </i>
+                    </button>
                 </div>
                 <div id = spanDisplay>
-                    <div id = spanTable>
-                        <div id = spanTableHeader class = tableHeader>
-                            <h1>subspace No</h1>
-                            <h1> Basis Vectors</h1>
-                        </div>
-                        <div id = spanTableBody class = tableBody>
-                        </div>
-                    </div>
+                    <table class="ui celled table" id = "spanTable">
+                      <thead id = "spanTableHeader">
+                        <tr><th>Subspace No</th>
+                        <th>Basis Vectors</th> 
+                      </tr></thead>
+                      <tbody id = "spanTableBody">
+
+                      </tbody>
+                     </table>
                 </div>           
             </div>
         </div>
 
-        <div id=matricesMenu class=menu> 
+        <div id=matricesMenu class=menus> 
             <text> Matrices </text> 
             <div id=matricesSideBar class=form>
                 <div id = matricesInputs>
-                    <div id = matricesButns>
-                        <button id = vTransform>transformVector</button>
-                        <button id = columnSpace>columnSpace</button>
-                        <button id = nullSpace> nullSpace</button>
-                        <button id = transformSubspace> transformSubspace</button>
-                        <button id = eigenValues> eigenValues </button>
-                        <button id = eigenSpace> eigenSpace </button>
-                    </div>
+                    <div class="ui vertical menu">
+                      <div id = "buttonDropDown" class="ui dropdown item"> choose button 
+                        <i class="dropdown icon"></i>
+                        <div id = "buttonsMenu" class = "menu" style="display:none;" >
+                            <button id = vTransform class="ui button"> <i class="angle double right icon"></i> transformVector</button>
+                            <button id = columnSpace class="ui button"><i class = "paint brush icon"> </i>columnSpace </button>
+                            <button id = nullSpace class="ui button"><i class = "paint brush icon"> </i> nullSpace</button>
+                            <button id = transformSubspace class="ui button"><i class="angle double right icon"> </i> transformSubspace</button>
+                            <button id = eigenValues class="ui button"><i class="angle search icon"></i> eigenValues </button>
+                            <button id = eigenSpace class="ui button"><i class = "paint brush icon"> </i> eigenSpace </button>
+                        </div>
+                      </div>
+   
+</div>
                     <div id = eigenValueSelector> 
-                        <select id = evSelector> </select>
+                        <select id = evSelector class = "ui dropdown"> 
+                            <option value = "" disabled selected hidden> please select... </option>
+                        </select>
                     </div>
                     <div id = matricesTextsInputs>
-                        <div id = matrixInput>
-                            <input id = m11 class = "matrixInput"> </input>
-                            <input id = m12 class = "matrixInput"> </input>
-                            <input id = m13 class = "matrixInput"> </input>
-                            <input id = m21 class = "matrixInput"> </input>
-                            <input id = m22 class = "matrixInput"> </input>
-                            <input id = m23 class = "matrixInput"> </input>
-                            <input id = m31 class = "matrixInput"> </input>
-                            <input id = m32 class = "matrixInput"> </input>
-                            <input id = m33 class = "matrixInput"> </input>
+                        <div id = matrixInput >
+                            <div class = "column ui input"> 
+                                <input id = m11 class = "matrixInput" placeholder="m11"> </input>
+                            </div>
+                            <div class = "column ui input" > 
+                                <input id = m12 class = "matrixInput" placeholder="m12"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m13 class = "matrixInput" placeholder="m13"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m21 class = "matrixInput" placeholder="m21"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m22 class = "matrixInput" placeholder="m22"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m23 class = "matrixInput" placeholder="m23"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m31 class = "matrixInput" placeholder="m31"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m32 class = "matrixInput" placeholder="m32"> </input>
+                            </div>
+                            <div class = "column ui input " > 
+                                <input id = m33 class = "matrixInput" placeholder="m33"> </input>
+                            </div>
                         </div>
                         <div id = vectorInput>
-                            <input id = x class = "matrixInput"> </input>
-                            <input id = y class = "matrixInput"> </input>
-                            <input id = z class = "matrixInput"> </input>
+                            <div class = "ui input " ><input id = x class = "matrixInput" placeholder="x" > </input> </div>
+                            <div class = "ui input " ><input id = y class = "matrixInput" placeholder="y"class = " two wide column"> </input></div>
+                            <div class = "ui input " ><input id = z class = "matrixInput" placeholder="z" class = "two wide column"> </input></div>
                         </div>
                     </div>
                 </div>
                 <div id = matricesDisplay>
                     <div id = matricesTextDisplay> </div>
-                    <div id = matricesTable>
-                        <div id = matricesTableHeader class = tableHeader>
-                            <h1>subspace No</h1>
-                            <h1> Basis Vectors</h1>
-                        </div>
-                        <div id = matricesTableBody class = tableBody>
-                            <!--how to add n basis vectors in a grid on the same row-->
-                        </div>
-                    </div>
+                    <table class="ui celled table" id = matricesTable>
+                        <thead id = "matricesTableHeader">
+                            <tr><th>Subspace No</th>
+                            <th>Header</th></tr>
+                        </thead>
+                        <tbody id = "matricesTableBody">
+                        </tbody>
+                    </table>               
                 </div>
             </div>
         </div>
 
         <canvas id="stage"></canvas>
-        <script src="matrix.js"></script>
-		<script src="js/three.js"></script>
-  		<script src="js/OrbitControls.js"></script>
+        <script src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
         <script src="js/numeric_1.2.6.js"></script>
-		<script src="graphics.js"></script>
+        <script src="matrix.js"></script>
+    <script src="graphics.js"></script>
+        <script src="animations.js"></script>
         <script src = "userInterface.js"></script>
-
-	</body>
+    </body>
 </html>

@@ -1,11 +1,62 @@
+/*------------------GENERAL SECTION-------------------------------*/
+/*------CONTAINS GENERAL HELPER FUNCTIONS FOR USER INTERFACE------*/
+
+/* used to create either textboxes or checkboxes
+   returns a reference to the created text inputBox */
+function makeInputBox(inputType) {
+  
+  var inputBox = document.createElement("INPUT");
+  inputBox.setAttribute("type", inputType );
+
+  return inputBox;
+}
+
+/* used to create a div element */
+function makeDiv(type) {
+  
+  var container = document.createElement("div");
+  container.className = type;
+
+  return container;
+}
+
+/* used to create a SemanticUI textbox*/
+function makeTextBox() {
+  
+  var container = makeDiv("ui input");
+  container.appendChild(makeInputBox("text"));
+  return container;
+
+}
+
+/* used to create a SemanticUI checkbox */
+function makeCheckBox() {
+  
+  var container = makeDiv("ui checkbox");
+  var emptyLabel = document.createElement("label");
+  container.appendChild(makeInputBox("checkbox"));
+  container.appendChild(emptyLabel);
+  return container;
+
+}
+
+/* Given an enabled Semantic UI textbox, this function disables it */
+function disableTextBox(textBox) {
+    textBox.className = "ui disabled input";
+}
+
+/* Given a disabled Semantic UI textbox, this function enables it */
+function enableTextBox(textBox) {
+    textBox.className = "ui input";
+}
+
+/*------------------VECTORS SECTION-------------------------------*/
+
 /* Key variables for the Vectors Tab */
 var numVectors = 0; // storet the number of vectors 
 
 var vectorList = []; // store the list of vectors entered by the user
 var checkBoxList = []; // store the list of checkboxes on the Vectors Form
-
-
-/*------------------VECTORS SECTION-------------------------------*/
 
 /* register event handlers */
 var addVectorBtn = document.getElementById("addVector");
@@ -17,6 +68,10 @@ renderBtn.onclick = () => { drawAllVectors(vectorList); };
 var deleteVectorBtn = document.getElementById("deleteVector");
 deleteVectorBtn.onclick = deleteLastVector;
 
+var animateComboBtn = document.getElementById("animateCombo");
+animateComboBtn.onclick = () => { 
+    var linComboAnimation = new linComboPlayable(vectorList); 
+};
  
 /* add a set of text input boxes representing 1 vector to the web page
    Then, store references to these input boxes in an object and add this object
@@ -36,36 +91,36 @@ function addControls() {
   vectorsInnerForm.appendChild(vectorLabel);
   
   // create and add 4 textboxes
-  var inputXCoord = makeInputBox("text");
+  var inputXCoord = makeTextBox();
   vectorsInnerForm.appendChild(inputXCoord);
 
-  var inputYCoord = makeInputBox("text");
+  var inputYCoord = makeTextBox();
   vectorsInnerForm.appendChild(inputYCoord);
   
-  var inputZCoord = makeInputBox("text");
+  var inputZCoord = makeTextBox();
   vectorsInnerForm.appendChild(inputZCoord);
 
-  var inputCoeff = makeInputBox("text");   
+  var inputCoeff = makeTextBox();   
   vectorsInnerForm.appendChild(inputCoeff);
   
   // create and add 1 checkbox to webpage
-  var checkBox = makeInputBox("checkbox");
-  vectorsInnerForm.appendChild(checkBox);
+  var checkBoxContainer = makeCheckBox();
+  vectorsInnerForm.appendChild(checkBoxContainer);
 
 
   // wrap key data into an object  
   var vectorObj = {
     label: vectorLabel,
-    xCoord: inputXCoord,
-    yCoord: inputYCoord,
-    zCoord: inputZCoord,
-    coeff: inputCoeff,
+    xCoord: inputXCoord.childNodes[0],
+    yCoord: inputYCoord.childNodes[0],
+    zCoord: inputZCoord.childNodes[0],
+    coeff: inputCoeff.childNodes[0],
     hex: undefined, // store the color of this vector [in future]
     graphic: undefined // store the threeJS object for this vector, once it's created
   };
 
   vectorList.push(vectorObj);
-  checkBoxList.push(checkBox);
+  checkBoxList.push(checkBoxContainer.firstElementChild);
 
 
   /* clicking the vector's label should hide or unhide the vector 
@@ -77,9 +132,19 @@ function addControls() {
     if (opac === "1") {
       vectorLabel.style.opacity = "0.5";
       allObjects.remove(vectorObj.graphic);
+
+      disableTextBox(inputXCoord);
+      disableTextBox(inputYCoord);
+      disableTextBox(inputZCoord);
+      disableTextBox(inputCoeff);
     } else {
       vectorLabel.style.opacity = "1";
       allObjects.add(vectorObj.graphic);
+      
+      enableTextBox(inputXCoord);
+      enableTextBox(inputYCoord);
+      enableTextBox(inputZCoord);
+      enableTextBox(inputCoeff);
     }
   };
 
@@ -94,6 +159,7 @@ function addControls() {
     };
     
 }
+
 
 /* Remove the last vector from the Scene and the Web page.
    This means: 
@@ -113,34 +179,21 @@ function deleteLastVector() {
 
     /* remove associated labels, textboxes from webpage */
     lastVector.label.remove();
-    lastVector.xCoord.remove();
-    lastVector.yCoord.remove();
-    lastVector.zCoord.remove();
-    lastVector.coeff.remove();
+    lastVector.xCoord.parentElement.remove();
+    lastVector.yCoord.parentElement.remove();
+    lastVector.zCoord.parentElement.remove();
+    lastVector.coeff.parentElement.remove();
 
     /* remove last checkbox from the checkbox list */
     var lastCheckBox = checkBoxList.pop();
     
     /* remove checkbox from webpage */
-    lastCheckBox.remove();
+    lastCheckBox.parentElement.remove();
 
     /* decrement counter */
     numVectors = numVectors - 1;
         
 }
-
-/* use to create either textboxes or checkboxes
-   returns a reference to the created inputBox */
-function makeInputBox(inputType) {
-  
-  var textBox = document.createElement("INPUT");
-  textBox.setAttribute("type", inputType);
-  
-  return textBox;
-}
-
-
-
 
 /*------------------SPANS SECTION-------------------------------*/
 
@@ -234,7 +287,14 @@ function spanBtnhelper() {
     alert("no vector input!");
   } else {   
     numSubps++;
-    var display = document.getElementById("spanTableBody");
+    var tableBody = document.getElementById("spanTableBody");
+    // create the current row and two columns
+    var row = document.createElement("tr");
+    tableBody.appendChild(row);
+    var firstCol = document.createElement("td");
+    row.appendChild(firstCol);
+    var secondCol = document.createElement("td");
+    row.appendChild(secondCol);
     // a 3*r matrix where 1 <= r <= 3
     var vectorsToSpan = filterRedundancy(checkedVectors);
     /*printMatrix(vectorsToSpan); */
@@ -243,10 +303,10 @@ function spanBtnhelper() {
 
     // creating subsp obj and adding event handlers
     var subspGraphic= arr[0];
-    var subspLabel = document.createElement("h1");
+    var subspLabel = document.createElement("h2");
     subspLabel.innerHTML = "Subp: " + numSubps;
     subspLabel.setAttribute("class", "label");
-    display.appendChild(subspLabel);
+    firstCol.appendChild(subspLabel);
     var subsp = {
     label: subspLabel,
     graphic: subspGraphic
@@ -273,7 +333,7 @@ function spanBtnhelper() {
       var x = vectorsToSpan[0][i-1];
       var y = vectorsToSpan[1][i-1];
       var z = vectorsToSpan[2][i-1];
-      var vLabel = document.createElement("h1");
+      var vLabel = document.createElement("h2");
       // setting the vLabel to be of class "label"
       vLabel.setAttribute("class", "label");
       vLabel.innerHTML = 
@@ -284,7 +344,7 @@ function spanBtnhelper() {
       addLabelEffects(vLabel, vGraphic);
       vlabels.push(vLabel);
     }
-    display.appendChild(vlabelContainer);
+    secondCol.appendChild(vlabelContainer);
     //push the newly added subpObj into the list
     var obj = {
       subsp : subsp,
@@ -297,6 +357,17 @@ function spanBtnhelper() {
 
 /*------------------MATRICES SECTION-------------------------------*/
 /* obj caching all info for matrices section , may need to modify it*/ 
+/* menu effects*/
+var buttonsMenu = document.getElementById("buttonsMenu");
+var dropdown = document.getElementById("buttonDropDown");
+dropdown.onmouseenter = () => {
+    buttonsMenu.style.display = "grid";
+  };
+dropdown.onmouseleave = () => {
+  buttonsMenu.style.display = "none";
+};
+
+
 
 // initializing the object
 var matricesObj= {
@@ -377,7 +448,7 @@ function tranformVButnhelper() {
   }
 
   // add graphic
-  var graphic = drawOneVector(vectorArr[0],vectorArr[1],vectorArr[2],0x000000,matricesGraphics);
+  var graphic = drawOneVector(vectorArr[0],vectorArr[1],vectorArr[2],0xff0066,matricesGraphics);
   matricesObj.transformedVector.graphic = graphic;
 
   // add label and its eventListener
@@ -405,14 +476,21 @@ and fill in respective attributes 2. update it to matricesObj
 
 problem: how to apply it to eigenspace?(eigenspace is a bit more complicated need the selection )
 */
-function helper(vectorsToSpan, display, type, typeObj) { // typeObj: an attribute of matricesObj, ie.matricesObj.nullSpace
+function helper(vectorsToSpan, matricesTableBody, type, typeObj) { // typeObj: an attribute of matricesObj, ie.matricesObj.nullSpace
   // if basisVectors is empty then, it's a zero space
   if (vectorsToSpan[0].length == 0) {
     alert("a zero space!");
   } else {
     // return an arr with first index as the ref to subsp graphic and behind ref to basis vectors in order
     var resultArr= drawSpan(vectorsToSpan, matricesGraphics);
-    
+    var tableBody = document.getElementById("matricesTableBody");
+    // create the current row and two columns
+    var row = document.createElement("tr");
+    tableBody.appendChild(row);
+    var firstCol = document.createElement("td");
+    row.appendChild(firstCol);
+    var secondCol = document.createElement("td");
+    row.appendChild(secondCol);
     // subsp section
     //creating and assigning label and graphic attribute of subsp
     var subspGraphic = resultArr[0];
@@ -421,7 +499,7 @@ function helper(vectorsToSpan, display, type, typeObj) { // typeObj: an attribut
     typeObj.subsp.label = subspLabel;
     subspLabel.innerHTML = type;
     subspLabel.setAttribute("class", "label");
-    display.appendChild(subspLabel);
+    firstCol.appendChild(subspLabel);
     //add eventListner to label and graphic pair
     addLabelEffects(subspLabel,subspGraphic);
 
@@ -443,7 +521,7 @@ function helper(vectorsToSpan, display, type, typeObj) { // typeObj: an attribut
       //add eventListener to label graphic pair
       addLabelEffects(currentVLabel, currentVGraphic);
     }
-    display.appendChild(vlabelContainer);
+    secondCol.appendChild(vlabelContainer);
   }
 }
 
@@ -518,7 +596,7 @@ function transformSubspButnhelper() {
   // original set of basis vectors of the subspace as a 3 * r matrix
   var originalBasis = filterRedundancy(checkedVectors);
   // assign subsp and basisVectors attributes
-  helper(findRestrictedRange(currentMatrix,originalBasis), display, "nullSpace", matricesObj.nullSpace); 
+  helper(findRestrictedRange(currentMatrix,originalBasis), display, "transformedSubspace", matricesObj.nullSpace); 
 }
 
 
@@ -543,11 +621,11 @@ function eigenValuesBtnhelper() {
   }
   var selector = document.getElementById("evSelector");
   //check if there is already an option element in selector, if so clear it
-  if(selector.length != 0) {
+  if(selector.length != 1) {
     var length = selector.length;
-    for (var j = 0; j < length; j++) {
+    for (var j = 1; j < length; j++) {
       //console.log("counter++");
-      selector.remove(0);
+      selector.remove(1);
     }
   }
   // assign fields
@@ -601,6 +679,4 @@ function eigenSpaceBtnHelper(valueObj) {
   // adding labels and graphics to fields subsp and basisVectors of subspObj
   helper(vectorsToSpan,display, "EigenSpace", subspObj);
 }
-
-
 

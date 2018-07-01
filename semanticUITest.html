@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        <title>visual-vector</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/button.min.css"/>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/checkbox.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/checkbox.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/icon.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/input.min.css" />
+        <link rel="stylesheet" href="admin.css"/>
+        <link rel="stylesheet" href="toolbars.css"/>
+    
+    <!--
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/semantic.min.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/semantic.min.js"></script>
+        <link rel="stylesheet" href="admin.css"/>
+        <link rel="stylesheet" href="toolbars.css"/>
+    -->
+    </head>
+    <body>
+        
+        <div id="navBar">
+            
+        </div>
+        
+        <div id=vectorsMenu class=menu> 
+            <text>Vectors</text>
+            <div id=vectorsForm class=form>
+                    <button id="addVector" class="ui labeled icon button"> Add Vector 
+                        <i class="plus icon"></i>
+                    </button>
+                    <button id="deleteVector" class="ui icon button">
+                        <i class="trash icon"></i>
+                    </button>
+                    <button id="renderVectors" class="ui labeled icon button"> Draw Vectors
+                        <i class="pencil alternate icon"></i>                       
+                    </button>
+                    <button id="animateCombo" class="ui button"> Animate Linear Combo </button>
+                    <div id=vectorsInnerForm>
+                        <h1>    </h1>
+                        <h1> X: </h1>
+                        <h1> Y: </h1>
+                        <h1> Z: </h1>
+                        <h1> Coefficient </h1>
+                        <h1> Include in Span </h1>
+                    </div> 
+            </div>
+        </div>
+<!--
+        <div id=spansMenu class=menu> 
+            <text> Spans </text>
+            <div id= spanSideBar class=form>
+                <div id = spanInputs >
+                    <button id = "span" class="ui labeled icon button"> span 
+                        <i class = "pencil alternate icon"> </i>
+                    </button>
+                </div>
+                <div id = spanDisplay>
+                    <div id = spanTable>
+                        <div id = spanTableHeader class = tableHeader>
+                            <h1>subspace No</h1>
+                            <h1> Basis Vectors</h1>
+                        </div>
+                        <div id = spanTableBody class = tableBody>
+                        </div>
+                    </div>
+                </div>           
+            </div>
+        </div>
+
+        <div id=matricesMenu class=menu> 
+            <text> Matrices </text> 
+            <div id=matricesSideBar class=form>
+                <div id = matricesInputs>
+                    <div id = matricesButns>
+                        <button id = vTransform>transformVector</button>
+                        <button id = columnSpace>columnSpace</button>
+                        <button id = nullSpace> nullSpace</button>
+                        <button id = transformSubspace> transformSubspace</button>
+                        <button id = eigenValues> eigenValues </button>
+                        <button id = eigenSpace> eigenSpace </button>
+                    </div>
+                    <div id = eigenValueSelector> 
+                        <select id = evSelector> </select>
+                    </div>
+                    <div id = matricesTextsInputs>
+                        <div id = matrixInput>
+                            <input id = m11 class = "matrixInput"> </input>
+                            <input id = m12 class = "matrixInput"> </input>
+                            <input id = m13 class = "matrixInput"> </input>
+                            <input id = m21 class = "matrixInput"> </input>
+                            <input id = m22 class = "matrixInput"> </input>
+                            <input id = m23 class = "matrixInput"> </input>
+                            <input id = m31 class = "matrixInput"> </input>
+                            <input id = m32 class = "matrixInput"> </input>
+                            <input id = m33 class = "matrixInput"> </input>
+                        </div>
+                        <div id = vectorInput>
+                            <input id = x class = "matrixInput"> </input>
+                            <input id = y class = "matrixInput"> </input>
+                            <input id = z class = "matrixInput"> </input>
+                        </div>
+                    </div>
+                </div>
+                <div id = matricesDisplay>
+                    <div id = matricesTextDisplay> </div>
+                    <div id = matricesTable>
+                        <div id = matricesTableHeader class = tableHeader>
+                            <h1>subspace No</h1>
+                            <h1> Basis Vectors</h1>
+                        </div>
+                        <div id = matricesTableBody class = tableBody>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    -->
+    </body>
+</html>

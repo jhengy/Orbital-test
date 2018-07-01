@@ -1,4 +1,4 @@
-.menu {
+.menus {
   background-color: #F19F4D;
   padding: 0.5em 0.5em 0.5em 2.5em; 
   position: absolute;
@@ -6,18 +6,19 @@
   width: 15%;
   height: 2%;
   z-index: 1;
+  border-radius: 25px;
 
   transition: 1s;
 }
 
-.menu text {
+.menus text {
   font-family: arial;
   position: absolute;
   top: 20%;
   left: 70%;
 }
 
-.menu:hover { 
+.menus:hover { 
   left: 56%; 
   z-index: 2; /* the menu being hovered upon should rise above the other menus */
 }
@@ -25,6 +26,7 @@
 .label:hover {
   font-size: 50;
   background-color: yellow;
+  cursor: pointer;
 }
 
 
@@ -42,6 +44,9 @@ top: 60%;
 /*left: 56%;*/
 }
 
+::-webkit-scrollbar { 
+    display: none; 
+}
 
 .form {
   background-color: #F19F4D;
@@ -52,9 +57,12 @@ top: 60%;
   left: -300%;
   width: 300%;
   height: 1250%;
+  border-radius: 25px;
+  
+
 
   font-family: arial;
-  overflow: scroll;   
+  overflow: auto;   
 }
 
 #vectorsInnerForm {
@@ -64,14 +72,14 @@ top: 60%;
     top: 20%;
 
     display: grid;
-    grid-template-columns: 15% 15% 15% 15% 20% auto;
-    grid-column-gap: 1%;
+    grid-template-columns: 10% 10% 10% 10% 10% auto;
+    grid-column-gap: 5%;
 
     font-size:8px;
 
 }
 
-
+/*
 #spanTable {
   background-color: green;
   border: 2px solid black;
@@ -94,11 +102,14 @@ top: 60%;
   grid-template-columns: auto auto ;
   grid-column-gap: 1%; 
 }
+*/
 
 
 #matricesInputs {
-  background-color: yellow;
-  border: 2px solid black;
+  /*background-color: yellow;
+  border: 2px solid black;*/
+  grid-template-columns: 66% auto;
+  grid-column-gap: 1%;
 
   font-size:8px;
 }
@@ -118,15 +129,23 @@ top: 60%;
   width : 145px;
 }
 #matrixInput {
-  border: 2px solid black;
-  grid-template-columns: auto auto auto;
+  /*border: 2px solid red;*/
+  display: grid;
+  grid-template-columns: 20% 20% 20%;
   grid-column-gap: 1%;
 }
 
 #vectorInput {
-  border: 2px solid black;
+  /*border: 2px solid black;*/
+  display: grid;
+  grid-template-columns: 20%;
+  grid-column-gap: 1%;
 }
-
+#matricesTextsInputs input {
+  width : 10px;
+  height : 20px;
+}
+/*
 #matricesDisplay {
   background-color: yellow;
   border: 2px solid black;
@@ -156,7 +175,7 @@ top: 60%;
   grid-column-gap: 1%;
 }
 
-
+*/
 
 
 

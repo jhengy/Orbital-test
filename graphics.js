@@ -1,6 +1,7 @@
 var camera, scene, renderer, controls;
 var axes = new THREE.Object3D;
 var allObjects = new THREE.Object3D;
+var renderQueue = [render];
 
 /*a separate var storing ref to an obj3d for containing all graphical elements 
  related to the span section */
@@ -10,14 +11,23 @@ var spanGraphics = new THREE.Object3D;
 var matricesGraphics = new THREE.Object3D;
 
 init();
+// add eventListener to adjust 
+window.addEventListener("resize", function() {
+	var width = 3*(window.innerWidth / 4);
+	var height = 8*(window.innerHeight / 9);
+	renderer.setSize(width, height);
+	camera.aspect = width/height;
+	camera.updateProjectionMatrix();
+});
+
 animate();
+
 
 function init() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xffffff );
+  scene.background = new THREE.Color( 0x002233 );
   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 5000);
-  camera.position.set(0, 5, 1.5).setLength(100);
-
+  camera.position.set(0, 5, 1.5).setLength(120);
 
   var stage = document.getElementById("stage");
 
@@ -28,17 +38,17 @@ function init() {
   //setting up xyz axis
   //GridHelper( size of the entire grid, divisions : number of divisions on the grid, colorCenterLine : Color, colorGrid : Color (0x00ff00) ) --> 
   // green central line
-  var gridXZ = new THREE.GridHelper(100, 10,0x000000,0x00ff00);
+  var gridXZ = new THREE.GridHelper(100, 10,0xffffff, 0x33bbff);
   gridXZ.position.set(0,0,0);
   axes.add(gridXZ);
   // red central line
-  var gridXY = new THREE.GridHelper(100,10,0x000000,0xff0000);
+  var gridXY = new THREE.GridHelper(100,10,0xffffff,0x33bbff);
   gridXY.position.set(0,0,0);
   // rotation about x axis by 90 degrees
   gridXY.rotation.x = Math.PI/2;
   axes.add(gridXY);
   // blue central line
-  var gridYZ = new THREE.GridHelper(100,10,0x000000,0x0000FF);
+  var gridYZ = new THREE.GridHelper(100,10,0xffffff,0x33bbff);
   gridYZ.position.set(0,0,0);
   // rotation about z axis by 90 degrees
   gridYZ.rotation.z = Math.PI/2;
@@ -59,11 +69,20 @@ function init() {
     axes.add(sprY);   
     axes.add(sprZ);
   }
+  var xLabel = makeTextSprite("x", undefined, 60,0,0);
+  axes.add(xLabel);
+  var yLabel = makeTextSprite("y", undefined,5,60,0);
+  axes.add(yLabel);
+  var zLabel = makeTextSprite("z", undefined, 0,0,55);
+  axes.add(zLabel);
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  render();
+  
+  renderQueue.forEach(function(playable) {
+    playable();
+  });
 }
 
 function render() {
@@ -83,7 +102,7 @@ function makeTextSprite(message, opts, xCoord, yCoord, zCoord) {
   var textWidth = metrics.width;
 
   // text color
-  context.fillStyle = 'rgba(0, 0, 0, 1.0)';
+  context.fillStyle = 'rgb(51, 187, 255)';
   context.fillText(message, 0, fontsize);
 
   // canvas contents will be used for a texture
@@ -129,7 +148,7 @@ function createLine(vector,scale) {
       endPt1,
       endPt2
       );
-  var material = new THREE.LineBasicMaterial({ color: 0x00ffff, linewidth: 5 });
+  var material = new THREE.LineBasicMaterial({ color: 0xb38600, linewidth: 5 });
   var line = new THREE.Line(geometry, material);
 
   var allObj = new THREE.Object3D();
@@ -225,7 +244,7 @@ function drawAllVectors(vectorQueue) {
 
     var currentVectorObj = vectorQueue[i];
     var vector = createVector(currentVectorObj.xCoord.value, currentVectorObj.yCoord.value, currentVectorObj.zCoord.value,
-        new THREE.Vector3(0,0,0),0x00ffff);
+        new THREE.Vector3(0,0,0),0xff0066);
     
     /* Store the created threeJS object into the vector object in the Queue [to facilitate deletion of vectors] */
     vectorQueue[i].graphic = vector;
@@ -249,7 +268,7 @@ function drawSpan(m,container) {
     var x = m[0][0];
     var y = m[1][0];
     var z = m[2][0];
-    var v = createVector(x,y,z,new THREE.Vector3(0,0,0),0x000000);
+    var v = createVector(x,y,z,new THREE.Vector3(0,0,0),0xff0066);
     var line = createLine(new THREE.Vector3(x,y,z),36);
     arr.push(line);
     arr.push(v);
@@ -265,10 +284,10 @@ function drawSpan(m,container) {
     var plane = createPlane(
         new THREE.Vector3(x1,y1,z1),
         new THREE.Vector3(x2,y2,z2),
-        100,0xffff00
+        100,0xb38600
         )
-    var v1 = createVector(x1,y1,z1,new THREE.Vector3(0,0,0),0x000000);
-    var v2 = createVector(x2,y2,z2,new THREE.Vector3(0,0,0),0x000000);
+    var v1 = createVector(x1,y1,z1,new THREE.Vector3(0,0,0),0xff0066);
+    var v2 = createVector(x2,y2,z2,new THREE.Vector3(0,0,0),0xff0066);
     arr.push(plane);
     arr.push(v1);
     arr.push(v2);
@@ -286,9 +305,9 @@ function drawSpan(m,container) {
     var y3 = m[1][2];
     var z3 = m[2][2];
     var cube = createCube();
-    var v1 = createVector(x1,y1,z1,new THREE.Vector3(0,0,0),0x000000);
-    var v2 = createVector(x2,y2,z2,new THREE.Vector3(0,0,0),0x000000);
-    var v3 = createVector(x3,y3,z3,new THREE.Vector3(0,0,0),0x000000);
+    var v1 = createVector(x1,y1,z1,new THREE.Vector3(0,0,0),0xff0066);
+    var v2 = createVector(x2,y2,z2,new THREE.Vector3(0,0,0),0xff0066);
+    var v3 = createVector(x3,y3,z3,new THREE.Vector3(0,0,0),0xff0066);
     arr.push(cube);
     arr.push(v1);
     arr.push(v2);
