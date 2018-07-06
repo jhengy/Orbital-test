@@ -1,0 +1,6 @@
+This file contains questions, doubts or issues that need clarification.
+
+1. Currently, the renderqueue only has 1 animation at any one time. In this case, removing the render function from the render queue is easy
+   - simply remove the first function in the queue.
+   If we have multiple animations concurrently, how do we remove a render function? A simple way is to iterate throught the render queue.
+   Is there a better way?

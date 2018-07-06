@@ -3,8 +3,8 @@
     <head>
         <meta charset=utf-8>
         <title>visual-vector</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>        
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/button.min.css"/>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/checkbox.min.css" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/checkbox.min.js"></script>
@@ -16,48 +16,43 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/table.min.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/components/popup.css" />
 
-        
-        
-        <link rel="stylesheet" href="admin.css"/>
-        <link rel="stylesheet" href="toolbars.css"/>
-        
-    
-    <!--
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/semantic.min.css"/>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.2/semantic.min.js"></script>
-        <link rel="stylesheet" href="admin.css"/>
-        <link rel="stylesheet" href="toolbars.css"/>
-    -->
-    
+
+
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_CHTML'></script>
+
+
+
+               
+        <link rel="stylesheet" href="css/admin.css"/>
+        <link rel="stylesheet" href="css/toolbars.css"/>        
+
     </head>
     <body>
         
         <div id="navBar">
-        	<img src="logo_darkBlue.jpg" alt="V3ctor logo" style = "width :8%; height: 100%">;
-            
+            <img src="assets/logo_darkBlue.jpg" alt="V3ctor logo" style = " position: absolute; left: 0.5%;width :8%; height: 100%">;
         </div>
+
+        <div id=vectorsMenu class=menus>
         
-        <div id=vectorsMenu class=menus> 
             <text>Vectors</text>
             <div id=vectorsForm class=form>
-                    <button id="addVector" class="ui labeled icon button" data-tooltip="Add Vector" data-position="bottom right"> Add Vector 
+                    <button id="addVector" class="ui labeled icon button" > Add Vector 
                         <i class="plus icon"></i>
                     </button>
                     <button id="deleteVector" class="ui icon button">
                         <i class="trash icon"></i>
                     </button>
                     <button id="renderVectors" class="ui labeled icon button"> Draw Vectors
-                        <i class="pencil alternate icon"></i>                       
-                    </button>
-                    <button id="animateCombo" class="ui button"> Animate Linear Combo </button>
+                        <i class="pencil alternate icon"></i>            </button>
+                    <button id="animateCombo" class="ui button" data-tooltip="animate linear combination of checked vectors" data-position="bottom right"> Animate Linear Combo </button>
                     <div id=vectorsInnerForm>
                         <h1>    </h1>
                         <h1> X: </h1>
                         <h1> Y: </h1>
                         <h1> Z: </h1>
                         <h1> Coefficient </h1>
-                        <h1> Include in Span </h1>
+                        <h1> Select Vector </h1>
                     </div> 
             </div>
         </div>
@@ -65,21 +60,21 @@
         <div id=spansMenu class=menus> 
             <text> Spans </text>
             <div id= spanSideBar class=form>
-                <div id = spanInputs >
-                    <button id = "span" class="ui labeled icon button"> span 
-                        <i class = "paint brush icon"> </i>
+                <div id = spanInputs>
+                    <button id= "span" class="ui labeled icon button" data-tooltip="generate a subspace spanned by the checked vectors" data-position="right center"> span 
+                        <i class= "paint brush icon"></i>
                     </button>
                 </div>
-                <div id = spanDisplay>
-                    <table class="ui celled table" id = "spanTable">
-                      <thead id = "spanTableHeader">
-                        <tr><th>Subspace No</th>
-                        <th>Basis Vectors</th> 
-                      </tr></thead>
-                      <tbody id = "spanTableBody">
-
-                      </tbody>
-                     </table>
+                <div id= spanDisplay>
+                    <table class="ui celled table" id= "spanTable">
+                        <thead id="spanTableHeader">
+                            <tr>
+                                <th>Subspace No</th>
+                                <th>Basis Vectors</th> 
+                            </tr>
+                        </thead>
+                        <tbody id="spanTableBody"></tbody>
+                    </table>
                 </div>           
             </div>
         </div>
@@ -87,53 +82,61 @@
         <div id=matricesMenu class=menus> 
             <text> Matrices </text> 
             <div id=matricesSideBar class=form>
-                <div id = matricesInputs>
+                <div id=matricesInputs>
+                    
                     <div class="ui vertical menu">
-                      <div id = "buttonDropDown" class="ui dropdown item"> choose button 
-                        <i class="dropdown icon"></i>
-                        <div id = "buttonsMenu" class = "menu" style="display:none;" >
-                            <button id = vTransform class="ui button"> <i class="angle double right icon"></i> transformVector</button>
-                            <button id = columnSpace class="ui button"><i class = "paint brush icon"> </i>columnSpace </button>
-                            <button id = nullSpace class="ui button"><i class = "paint brush icon"> </i> nullSpace</button>
-                            <button id = transformSubspace class="ui button"><i class="angle double right icon"> </i> transformSubspace</button>
-                            <button id = eigenValues class="ui button"><i class="angle search icon"></i> eigenValues </button>
-                            <button id = eigenSpace class="ui button"><i class = "paint brush icon"> </i> eigenSpace </button>
+                        <div id="buttonDropDown" class="ui dropdown item"> choose button 
+                            <i class="dropdown icon"></i>
+                            <div id="buttonsMenu" class="menu" style="display:none;" >
+                                <button id = vTransform class="ui button" data-tooltip="transform the input vector by the input matrix" data-position="bottom right"><i class="angle double right icon"></i> transformVector
+                                </button>
+                                <button id = columnSpace class="ui button" data-tooltip="generate columnspace of the input matrix" data-position="bottom right"><i class = "paint brush icon" > </i>columnSpace 
+                                </button>
+                                <button id = nullSpace class="ui button" data-tooltip="generate nullspace of the input matrix" data-position="bottom right"><i class = "paint brush icon"> </i> nullSpace
+                                </button>
+                                <button id = restrictedRange class="ui button" data-tooltip="restrict the domain of the matrix and find the new range" data-position="bottom left"><i class="angle double right icon"> </i> transformSubspace
+                                </button>
+                                <button id = eigenValues class="ui button" data-tooltip="find eigenvalues of the input matrix" data-position="bottom right"><i class="angle search icon"></i> eigenValues 
+                                </button>
+                                <button id = eigenSpace class="ui button" data-tooltip="select the eigenvalue and find the eigenspace" data-position="bottom right"><i class = "paint brush icon"> </i> eigenSpace 
+                                </button>
+                            </div>
                         </div>
-                      </div>
-   
-</div>
+                    </div>
+
                     <div id = eigenValueSelector> 
-                        <select id = evSelector class = "ui dropdown"> 
+                        <select id= evSelector class= "ui dropdown"> 
                             <option value = "" disabled selected hidden> please select... </option>
                         </select>
                     </div>
+
                     <div id = matricesTextsInputs>
                         <div id = matrixInput >
-                            <div class = "column ui input"> 
+                            <div class = "ui input"> 
                                 <input id = m11 class = "matrixInput" placeholder="m11"> </input>
                             </div>
-                            <div class = "column ui input" > 
+                            <div class = "ui input" > 
                                 <input id = m12 class = "matrixInput" placeholder="m12"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input" > 
                                 <input id = m13 class = "matrixInput" placeholder="m13"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input" > 
                                 <input id = m21 class = "matrixInput" placeholder="m21"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input" > 
                                 <input id = m22 class = "matrixInput" placeholder="m22"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input" > 
                                 <input id = m23 class = "matrixInput" placeholder="m23"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input" > 
                                 <input id = m31 class = "matrixInput" placeholder="m31"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input" > 
                                 <input id = m32 class = "matrixInput" placeholder="m32"> </input>
                             </div>
-                            <div class = "column ui input " > 
+                            <div class = "ui input"> 
                                 <input id = m33 class = "matrixInput" placeholder="m33"> </input>
                             </div>
                         </div>
@@ -148,8 +151,10 @@
                     <div id = matricesTextDisplay> </div>
                     <table class="ui celled table" id = matricesTable>
                         <thead id = "matricesTableHeader">
-                            <tr><th>Subspace No</th>
-                            <th>Header</th></tr>
+                            <tr>
+                                <th>Subspace No</th>
+                                <th>Basis Vectors</th>
+                            </tr>
                         </thead>
                         <tbody id = "matricesTableBody">
                         </tbody>
@@ -157,14 +162,31 @@
                 </div>
             </div>
         </div>
+        <div id="controlsMenu" class="five tiny compact ui inverted primary basic buttons">
+                <div id="rotateXButton" class="ui button">
+                    x
+                </div>
+                <div id="rotateYButton" class="ui button">
+                    y
+                </div>
+                <div id="rotateZButton" class="ui button">
+                    z
+                </div>
+                <div id="resetCameraButton" class="ui icon button">
+                    <i class="redo icon"></i>
+                </div>
+                <div id="clearButton" class="ui icon button">
+                    <i class="eraser icon"></i>
+                </div>        
+        </div>
 
         <canvas id="stage"></canvas>
-        <script src="js/three.js"></script>
-    <script src="js/OrbitControls.js"></script>
-        <script src="js/numeric_1.2.6.js"></script>
-        <script src="matrix.js"></script>
-    <script src="graphics.js"></script>
-        <script src="animations.js"></script>
-        <script src = "userInterface.js"></script>
+        <script src="libraries/three.js"></script>
+        <script src="libraries/OrbitControls.js"></script>
+        <script src="libraries/numeric_1.2.6.js"></script>
+        <script src="logic/matrix.js"></script>
+        <script src="logic/graphics.js"></script>
+        <script src="logic/animations.js"></script>
+        <script src="logic/userInterface.js"></script>
     </body>
 </html>

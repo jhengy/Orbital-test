@@ -18,6 +18,10 @@
   left: 70%;
 }
 
+::-webkit-scrollbar { 
+    display: none; /* hide the scrollbar. */
+}
+
 .menus:hover { 
   left: 56%; 
   z-index: 2; /* the menu being hovered upon should rise above the other menus */
@@ -31,21 +35,15 @@
 
 
 #vectorsMenu {
-top: 20%;
+  top: 20%;
 }
 
 #spansMenu {
-top: 40%;
-/*left: 56%;*/
+  top: 40%;
 }
 
 #matricesMenu {
-top: 60%;
-/*left: 56%;*/
-}
-
-::-webkit-scrollbar { 
-    display: none; 
+  top: 60%;
 }
 
 .form {
@@ -66,59 +64,27 @@ top: 60%;
 }
 
 #vectorsInnerForm {
-    position: absolute;
-    width: 100%;
-    left: 1%;
-    top: 20%;
-
-    display: grid;
-    grid-template-columns: 10% 10% 10% 10% 10% auto;
-    grid-column-gap: 5%;
-
-    font-size:8px;
-
-}
-
-/*
-#spanTable {
-  background-color: green;
-  border: 2px solid black;
+  position: absolute;
+  width: 100%;
+  left: 1%;
+  top: 20%;
 
   display: grid;
+  grid-template-columns: 10% 10% 10% 10% 10% auto;
+  grid-column-gap: 5%;
 
   font-size:8px;
 
 }
 
 
-#spanTableHeader {
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-column-gap: 1%;
-}
-
-#spanTableBody {
-  display: grid;
-  grid-template-columns: auto auto ;
-  grid-column-gap: 1%; 
-}
-*/
-
-
 #matricesInputs {
-  /*background-color: yellow;
-  border: 2px solid black;*/
   grid-template-columns: 66% auto;
   grid-column-gap: 1%;
 
   font-size:8px;
 }
-#matricesButns {
 
-}
-#eigenValueSelector {
-
-}
 #matricesTextsInputs {
   display: grid ;
   grid-template-columns: 66% auto;
@@ -128,15 +94,14 @@ top: 60%;
 #matricesTextsInputs input {
   width : 145px;
 }
+
 #matrixInput {
-  /*border: 2px solid red;*/
   display: grid;
   grid-template-columns: 20% 20% 20%;
   grid-column-gap: 1%;
 }
 
 #vectorInput {
-  /*border: 2px solid black;*/
   display: grid;
   grid-template-columns: 20%;
   grid-column-gap: 1%;
@@ -145,40 +110,22 @@ top: 60%;
   width : 10px;
   height : 20px;
 }
-/*
-#matricesDisplay {
-  background-color: yellow;
-  border: 2px solid black;
 
-  font-size:8px;
-}
-#matricesTextDisplay {
 
-}
-#matricesTable {
-  background-color: green;
-  border: 2px solid black;
+#controlsMenu {
+  top: 90%;
+  left: 0%;
 
-  display: grid;
+  opacity: 0.7;
+  position: absolute;
+  width: 20%;
+  height: 5%;
+  z-index: 1;
 
-  font-size:8px;
+  transition: 0.2s;
+
 }
 
-#matricesTableHeader {
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-column-gap: 1%;
+#controlsMenu:hover {
+  opacity: 1;
 }
-#matricesTableBody {
-  display: grid;
-  grid-template-columns: auto auto;
-  grid-column-gap: 1%;
-}
-
-*/
-
-
-
-
-
-

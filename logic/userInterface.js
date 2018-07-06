@@ -50,6 +50,130 @@ function enableTextBox(textBox) {
     textBox.className = "ui input";
 }
 
+/* register event handlers */
+var resetCameraBtn = document.getElementById("resetCameraButton");
+resetCameraBtn.onclick = () => {
+
+    setGrid();
+    controls.reset();
+};
+
+var rotateGridXBtn = document.getElementById("rotateXButton");
+var rotateGridYBtn = document.getElementById("rotateYButton");
+var rotateGridZBtn = document.getElementById("rotateZButton");
+
+rotateGridXBtn.onclick = rotateX;
+rotateGridYBtn.onclick = rotateY;
+rotateGridZBtn.onclick = rotateZ;
+
+function rotateX() {
+    var rotateFunc = () => rotateGrid("x");
+    renderQueue.unshift(rotateFunc);
+
+    rotateGridXBtn.removeEventListener("onclick", rotateX);
+    
+    function stopRotation() {
+        removeFromRenderQueue(rotateFunc);
+        rotateGridXBtn.removeEventListener("onclick", stopRotation);
+        rotateGridXBtn.onclick = rotateX;
+    }
+
+    rotateGridXBtn.onclick = stopRotation;
+
+}
+
+function rotateY() {
+    
+    var rotateFunc = () => rotateGrid("y");
+    renderQueue.unshift(rotateFunc);
+
+    rotateGridYBtn.removeEventListener("onclick", rotateY);
+    
+    function stopRotation() {
+        removeFromRenderQueue(rotateFunc);
+        rotateGridYBtn.removeEventListener("onclick", stopRotation);
+        rotateGridYBtn.onclick = rotateY;
+    }
+
+    rotateGridYBtn.onclick = stopRotation;
+
+}
+
+function rotateZ() {
+    
+    var rotateFunc = () => rotateGrid("z");
+    renderQueue.unshift(rotateFunc);
+
+    rotateGridZBtn.removeEventListener("onclick", rotateZ);
+    
+    function stopRotation() {
+        removeFromRenderQueue(rotateFunc);
+        rotateGridZBtn.removeEventListener("onclick", stopRotation);
+        rotateGridZBtn.onclick = rotateZ;
+    }
+
+    rotateGridZBtn.onclick = stopRotation;
+
+}
+
+/* precond: a 3*n matrix, where n is the number of basis vectors in a given subspace. 
+            Each column is a basis vector.
+   
+   postcond: 1 <h2> element containing the MathJax equation
+             Note: To use the equation element, give it an ID and add it to the HTML page
+             After adding it to the page, we need to ask MathJax to render the newly added
+             mathematics content. 
+             This is done using: MathJax.Hub.Queue(["Typeset",MathJax.Hub,"id-of-equation-element"]);
+
+             For more info, see: http://docs.mathjax.org/en/latest/advanced/typeset.html */
+function createCartesianEqnLabel(basisMatrix) {
+    
+    /* identify number of basis vectors */
+    let numVectors = basisMatrix[0].length;
+    
+    /* create a <h2> element */
+    let equationElement = document.createElement("h2");
+
+    if (numVectors === 3) {       
+        /* if the subspace is the whole space, generate the zero equation */
+        equationElement.textContent = "\\[0x + 0y + 0z = 0\\]";    
+    } else if (numVectors === 2) {
+
+        /* if the subspace is a plane, pass the basis vectors and the origin into the 
+           'planeVectorToCartesian' function in matrix.js */
+
+        /* extract both basis vectors for the given matrix */
+        let vectorA = [basisMatrix[0][0], basisMatrix[1][0], basisMatrix[2][0]];
+        let vectorB = [basisMatrix[0][1], basisMatrix[1][1], basisMatrix[2][1]];
+
+        /* since this plane is a span, the origin is one point that lies on the plane */
+        let pointOnPlane = [0, 0, 0];
+
+        /* 'planeVectorToCartesian' returns the coefficients of the plane's cartesian eqn,
+           given the plane's 2 direction vectors and a point on the plane */
+        let cartesianCoeffs = planeVectorToCartesian(vectorA, vectorB, pointOnPlane);
+
+        /* add the equation text to the equation <h2> element */
+        equationElement.textContent = printCartesianEqn(cartesianCoeffs);
+    } else {
+
+        /* if the subspace is a line, pass 1 basis vector and the origin into the 
+           'lineVectorToCartesian' function in matrix.js */
+        let vectorA = [basisMatrix[0][0], basisMatrix[1][0], basisMatrix[2][0]];
+        let pointOnLine = [0, 0, 0];
+        
+        let cartesianCoeffs = lineVectorToCartesian(vectorA, pointOnLine);
+
+        /* add the equation text to the equation <h2> element */
+        equationElement.textContent = printCartesianEqn(cartesianCoeffs[0]) 
+                                      + " " + printCartesianEqn(cartesianCoeffs[1]);
+    }
+    
+    /* return the <h2> element */
+    return equationElement;
+}
+
+
 /*------------------VECTORS SECTION-------------------------------*/
 
 /* Key variables for the Vectors Tab */
@@ -197,6 +321,43 @@ function deleteLastVector() {
 
 /*------------------SPANS SECTION-------------------------------*/
 
+/* global states for span section */
+var numSubps = 0;
+
+
+/* an arr containing references to subpace objs.
+   a subsp obj contain  subsp and also basisVectors objects, 
+   both of which contain 2 attributes :1. ref to its label 2. graphical obj)  
+    
+   Example:
+   let subspaceObj = {  
+                        subsp: subsp (another object)
+                        basisVectosrs: basisVectors (another object)
+                     }
+
+    let subsp = {
+                    label: subspLabel (contains the HTML label element)
+                    graphic: subsGraphic (the threejs graphic object)
+                }
+
+    let basisVectors: {
+                        labels: vectorLabels (array of HTML labels)
+                        graphics: vectorGraphics (array of threejs graphics)
+                      } */
+var subspList = [];
+
+/* When span button is pressed
+   1. Wrap all checked vectors as columns to form a matrix 
+   2. If no input/ matrix empty,alert the user, else create a subspObj, and push it into subspList
+*/
+var spanBtn = document.getElementById("span");
+spanBtn.onclick = spanBtnHelper;
+
+
+/* This function adds a mouseover effect on a given HTML label and its 
+   corresponding threejs graphic.
+   precond: the HTML label and the threejs graphic object
+   postcod: a mouseover function is added to the HTML label */
 function addLabelEffects(labelElement, graphic) {
     // adding hide/unhide & labelling features
     labelElement.onclick = () => {
@@ -226,24 +387,12 @@ function addLabelEffects(labelElement, graphic) {
     };
 }
 
-/* global states for span section */
-var numSubps = 0;
-/* an arr containing ref to subpace objs.
-a subsp obj contain  subsp and also basisVectors objects, both of which contain 2 attributes
-: 1. ref to its label 2. graphical obj)  
-*/
-var subspList = [];
-
-/*
-precond: 
-checkBoxList: an array containing reference of checkBox element
-vectorsList: an array containing reference of vectorArr
-* all vectors are in 3-space
-postcond: 
-return k checked vectors as columns making up a 3* k matrix, if no checked vectors,
-return empty matrix
-
-*/
+/* precond:  checkBoxList: an array containing reference of checkBox element
+             vectorsList: an array containing reference of vectorArr
+             note: all vectors are in 3-space
+   
+   postcond: return k checked vectors as columns making up a 3* k matrix, 
+             if no checked vectors, return empty matrix */
 function getCheckedVectors(checkBoxList, vectorsList) {
   var m = setMatrix(3);
   for (var i = 0; i < checkBoxList.length; i++) {
@@ -259,101 +408,138 @@ function getCheckedVectors(checkBoxList, vectorsList) {
   return m;
 }
 
-
-/* when span button is pressed
-1. wrapping all checked vectors as columns to form a matrix 
-2. if no input/ matrix empty,alert, else create a subspObj, and push it to subspList
+/*
 */
-var spanBtn = document.getElementById("span");
-spanBtn.onclick = () => { 
-  spanBtnhelper();
-}
-/* 
-when span button is pressed
-1. wrapping all checked vectors as columns to form a matrix 
-2. if 
-a) no input/ matrix empty,alert 
-b) else 
-(i)create a subspObj = {subsp : , basisVectors: }
-1. creating labels for vectors, and add it to the subpObj
-2. creating label for plane and add it to the subspObj,
-3.  define onclick events and mousedown and mouseup events for both labels  
-(ii) push the subspObj to the arr
+function generalSpanHelper(rawVectors, tableBody, labelDesc, spanObj) {
 
-*/
-function spanBtnhelper() {
-  var checkedVectors = getCheckedVectors(checkBoxList,vectorList);
-  if (checkedVectors[0].length == 0) {
-    alert("no vector input!");
-  } else {   
-    numSubps++;
-    var tableBody = document.getElementById("spanTableBody");
-    // create the current row and two columns
-    var row = document.createElement("tr");
+    /* create the current row and two columns */    
+    const row = document.createElement("tr");
+    const firstCol = document.createElement("td");
+    const secondCol = document.createElement("td");
     tableBody.appendChild(row);
-    var firstCol = document.createElement("td");
     row.appendChild(firstCol);
-    var secondCol = document.createElement("td");
     row.appendChild(secondCol);
-    // a 3*r matrix where 1 <= r <= 3
-    var vectorsToSpan = filterRedundancy(checkedVectors);
-    /*printMatrix(vectorsToSpan); */
-    // array containing ref to graphics
-    var arr = drawSpan(vectorsToSpan,spanGraphics);
 
-    // creating subsp obj and adding event handlers
-    var subspGraphic= arr[0];
-    var subspLabel = document.createElement("h2");
-    subspLabel.innerHTML = "Subp: " + numSubps;
-    subspLabel.setAttribute("class", "label");
+    /*  Filter out the redundant vectors. Result is a 3*r matrix where 1 <= r <= 3 */
+    const vectorsToSpan = filterRedundancy(rawVectors);
+        
+    /* Using the filtered vectors, use "drawSpan" to draw the graphic for this span on the grid.
+       "drawSpan" also returns an array containing the ref to the graphics representing the span
+        and the basis vectors of the span */
+    const arr = drawSpan(vectorsToSpan, spanGraphics);    
+
+   /* Extract the span's graphic from the array */
+    const subspGraphic = arr[0];
+    
+    /* Create the label for this subspace */
+    /* First, create an overall container for the labels */
+    const subspLabel = document.createElement("div");
+
+    /* Create a label that will read "Subp: X", where X is number of the subspace */
+    const descriptorLabel = document.createElement("h2");
+    descriptorLabel.innerHTML = labelDesc;
+    descriptorLabel.setAttribute("class", "label");
+
+    /* Create the Cartesian equation label */
+    const cartesianEqnLabel = createCartesianEqnLabel(vectorsToSpan);
+    
+    /* add labels into the HTML page */    
+    subspLabel.appendChild(descriptorLabel);
+    subspLabel.appendChild(cartesianEqnLabel);
     firstCol.appendChild(subspLabel);
-    var subsp = {
-    label: subspLabel,
-    graphic: subspGraphic
+    MathJax.Hub.Queue(['Typeset', MathJax.Hub, cartesianEqnLabel]);   
+
+    /* adding mouse over effects to the descriptorLabel */
+    addLabelEffects(descriptorLabel, subspGraphic); 
+
+    /* Wrap the graphic and labels in a subspace object */
+    const subspObj = {
+      label: subspLabel,
+      graphic: subspGraphic
     };
 
-    // adding eventListener to subspLabel
-    addLabelEffects(subspLabel, subspGraphic);
+    /* now, work on the basisVectors object */
+    /* determine the number of basis vectors */
+    const numVectors = arr.length - 1;
 
-    // creating basisVectors obj
-    var numVectors = arr.length - 1;
-    var vlabels = [];
-    var vgraphics = [];
-    var basisVectors = {
-      labels: vlabels, // contain ref to labels of correp vectors
-      graphics: vgraphics// contain ref to graphics of correp vectors
-    };
-    // a place holder for labels
-    var vlabelContainer = document.createElement("div");
+    /* create placeholders to hold the basis vector labels and graphics */
+    const vlabels = [];
+    const vgraphics = [];
+    const vlabelContainer = document.createElement("div");
 
-    // traversing across arr.
-    for (var i = 1; i < arr.length; i++) { 
-      var vGraphic = arr[i];
+    /* Traverse across arr  to setup the graphic and label 
+       for each basis vector */
+    for (let i = 1; i < arr.length; i++) {
+       
+      const vGraphic = arr[i];
       vgraphics.push(vGraphic);
-      var x = vectorsToSpan[0][i-1];
-      var y = vectorsToSpan[1][i-1];
-      var z = vectorsToSpan[2][i-1];
-      var vLabel = document.createElement("h2");
-      // setting the vLabel to be of class "label"
+
+      const x = vectorsToSpan[0][i-1];
+      const y = vectorsToSpan[1][i-1];
+      const z = vectorsToSpan[2][i-1];
+
+      const vLabel = document.createElement("h2");
       vLabel.setAttribute("class", "label");
       vLabel.innerHTML = 
         "Vector" + i + ": (" + x + ", " 
         +  y + ", " + z + ")";
+
       vlabelContainer.appendChild(vLabel);
       // adding hide/unhide & labelling features
       addLabelEffects(vLabel, vGraphic);
       vlabels.push(vLabel);
     }
+
     secondCol.appendChild(vlabelContainer);
-    //push the newly added subpObj into the list
-    var obj = {
-      subsp : subsp,
-      basisVectors: basisVectors
-    }
-    subspList.push(obj);
-    } 
+
+    const basisVectors = {
+      labels: vlabels, // contain ref to labels of correp vectors
+      graphics: vgraphics// contain ref to graphics of correp vectors
+    };
+
+    spanObj.subsp = subspObj;
+    spanObj.basisVectors = basisVectors;
+
 }
 
+
+
+/*This function is triggered when the Span button is clicked. 
+  When Span button is pressed
+  1. Wrap all checked vectors as columns to form a matrix 
+  2. if 
+  a) no input/matrix empty, alert the user. 
+  b) else 
+    (i) create a subspObj = {subsp:, basisVectors: }
+    (ii) create labels for vectors, and add them to the subpObj
+    (iii) creating label for the span and add it to the subspObj,
+    (iv) create the threejs objects for both the span and the vectors, 
+         and add them to subspObj
+    (v)  define onclick events and mousedown and mouseup events for both labels  
+    (vi) push the subspObj to the global subsList  */
+function spanBtnHelper() {
+
+  /* wrap the selected vectors into a matrix */
+  var checkedVectors = getCheckedVectors(checkBoxList,vectorList);
+
+  if (checkedVectors[0].length == 0) {
+    /* if no input vectors, alert the user */
+    alert("no vector input!");
+  } else {   
+    /* increment the global counter */
+    numSubps++;
+    
+    /* create the current row and two columns */
+    var tableBody = document.getElementById("spanTableBody");
+    const subspObj = { };
+
+    generalSpanHelper(checkedVectors, tableBody, "Subsp: " + numSubps, subspObj);
+    
+    /* push the newly added subpObj into the global subsp list */
+    subspList.push(subspObj);
+
+  }
+}
 
 /*------------------MATRICES SECTION-------------------------------*/
 /* obj caching all info for matrices section , may need to modify it*/ 
@@ -423,9 +609,8 @@ when butn is pressed,
 1. create vector graphic and vector label, add eventListeners to the label
 */
 var tranformBtn = document.getElementById("vTransform");
-tranformBtn.onclick = () => {
-  tranformVButnhelper();
-}
+tranformBtn.onclick = tranformVButnhelper;
+
 
 function tranformVButnhelper() {
   //update the coordinate attribute of the transformedVector field 
@@ -462,80 +647,14 @@ function tranformVButnhelper() {
 }
 
 
-/* adding event listeners for buttons involving generating subspaces */
-/*
-a series of functions transforming the matrix into subspaces: 1. columnSpace 2. nullSpace
-3. restricted subpace 
-precond: f --> function returning a 3*i matrix containing basis vectors of the subsp
-postcond: 
-a.if zero space, alert user ,else
-b.create subpObj and then update it in the respective fields of matricesObj. 
-1. assign subsp attributes: subsp: {label: undefined, graphic: undefined}
-2. assign basisVectors attribute: basisVectors: {labels: [], graphics: []}}
-and fill in respective attributes 2. update it to matricesObj
-
-problem: how to apply it to eigenspace?(eigenspace is a bit more complicated need the selection )
-*/
-function helper(vectorsToSpan, matricesTableBody, type, typeObj) { // typeObj: an attribute of matricesObj, ie.matricesObj.nullSpace
-  // if basisVectors is empty then, it's a zero space
-  if (vectorsToSpan[0].length == 0) {
-    alert("a zero space!");
-  } else {
-    // return an arr with first index as the ref to subsp graphic and behind ref to basis vectors in order
-    var resultArr= drawSpan(vectorsToSpan, matricesGraphics);
-    var tableBody = document.getElementById("matricesTableBody");
-    // create the current row and two columns
-    var row = document.createElement("tr");
-    tableBody.appendChild(row);
-    var firstCol = document.createElement("td");
-    row.appendChild(firstCol);
-    var secondCol = document.createElement("td");
-    row.appendChild(secondCol);
-    // subsp section
-    //creating and assigning label and graphic attribute of subsp
-    var subspGraphic = resultArr[0];
-    typeObj.subsp.graphic = subspGraphic;
-    var subspLabel = document.createElement("h1");
-    typeObj.subsp.label = subspLabel;
-    subspLabel.innerHTML = type;
-    subspLabel.setAttribute("class", "label");
-    firstCol.appendChild(subspLabel);
-    //add eventListner to label and graphic pair
-    addLabelEffects(subspLabel,subspGraphic);
-
-
-    // basisVectors section
-    // a place holder for labels
-    var vlabelContainer = document.createElement("div");
-    for (var i = 1; i < resultArr.length; i++) {
-      // for each basisVector in order, creating an assigning label and graphic ref
-      var currentVGraphic = resultArr[i];
-      typeObj.basisVectors.graphics[i - 1] = currentVGraphic;
-      var currentVLabel = document.createElement("h1");
-      typeObj.basisVectors.labels[i - 1] = currentVLabel;
-      currentVLabel.innerHTML = "Vector"+ i+ ": ("+vectorsToSpan[0][i - 1]+", " + 
-                                vectorsToSpan[1][i - 1]+ ", "+vectorsToSpan[2][i - 1] + ")";
-      currentVLabel.setAttribute("class", "label");
-      vlabelContainer.appendChild(currentVLabel);
-
-      //add eventListener to label graphic pair
-      addLabelEffects(currentVLabel, currentVGraphic);
-    }
-    secondCol.appendChild(vlabelContainer);
-  }
-}
-
-
-
 /* columnSpaceBtn
 columnSpace: {subsp: {label: undefined, graphic: undefined}, 
                 basisVectors: {labels: [], graphics: []}},
 1. add in graphic and labels(with event helper)
 */
 var columnSpaceBtn = document.getElementById("columnSpace");
-columnSpaceBtn.onclick = () => {
-  columnSpaceButnhelper();
-}
+columnSpaceBtn.onclick = columnSpaceButnhelper;
+
 
 function columnSpaceButnhelper(){
   var currentMatrix = getMatrix();
@@ -545,7 +664,7 @@ function columnSpaceButnhelper(){
   }
   var display = document.getElementById("matricesTableBody");
   // assign subsp and basisVectors attributes
-  helper(findColumnSpace(currentMatrix), display, "columnSpace", matricesObj.columnSpace);
+  generalSpanHelper(findColumnSpace(currentMatrix), display, "columnSpace", matricesObj.columnSpace);
 }
 
 
@@ -554,9 +673,7 @@ function columnSpaceButnhelper(){
               basisVectors: {labels: [], graphics: []}},
 */
 var nullSpaceBtn = document.getElementById("nullSpace");
-nullSpaceBtn.onclick = () => {
-  nullSpaceButnhelper();
-}
+nullSpaceBtn.onclick = nullSpaceButnhelper;
 
 function nullSpaceButnhelper(){
   var currentMatrix = getMatrix();
@@ -566,7 +683,7 @@ function nullSpaceButnhelper(){
   }
   var display = document.getElementById("matricesTableBody");
   // assign subsp and basisVectors attributes
-  helper(findNullSpace(currentMatrix), display, "nullSpace", matricesObj.nullSpace);
+  generalSpanHelper(findNullSpace(currentMatrix), display, "nullSpace", matricesObj.nullSpace);
 }
 
 
@@ -574,10 +691,8 @@ function nullSpaceButnhelper(){
 transformedSubspace: {subp: {label: undefined, graphic: undefined}, 
                         basisVectors: {labels: [], graphics: []}},
 */
-var transformSubspBtn = document.getElementById("transformSubspace");
-transformSubspBtn.onclick = () => {
-  transformSubspButnhelper();
-}
+var transformSubspBtn = document.getElementById("restrictedRange");
+transformSubspBtn.onclick = transformSubspButnhelper;
 
 function transformSubspButnhelper() {
   var currentMatrix = getMatrix();
@@ -596,11 +711,11 @@ function transformSubspButnhelper() {
   // original set of basis vectors of the subspace as a 3 * r matrix
   var originalBasis = filterRedundancy(checkedVectors);
   // assign subsp and basisVectors attributes
-  helper(findRestrictedRange(currentMatrix,originalBasis), display, "transformedSubspace", matricesObj.nullSpace); 
+  generalSpanHelper(findRestrictedRange(currentMatrix,originalBasis), display, "transformedSubspace", matricesObj.nullSpace); 
 }
 
 
-/* eigenvalue and eigenvector butns */
+/* eigenvalue and eigenvector buttons */
 
 /* add eventListener to eigenValues Butn
 1. find the arr of eigenValues --> if no real eigenvalue, alert, else
@@ -609,9 +724,7 @@ Option element with value as eigenvalue and add it to the eigenValueSelector ele
 */
 var eigenValueSelector = document.getElementById("evSelector");
 var eigenValuesBtn = document.getElementById("eigenValues");
-eigenValuesBtn.onclick = () => {
-  eigenValuesBtnhelper();
-}
+eigenValuesBtn.onclick = eigenValuesBtnhelper;
 
 function eigenValuesBtnhelper() {
   var currentMatrix = getMatrix();
@@ -677,6 +790,6 @@ function eigenSpaceBtnHelper(valueObj) {
 
   var vectorsToSpan = findEigenSpace(M,eigenValue);
   // adding labels and graphics to fields subsp and basisVectors of subspObj
-  helper(vectorsToSpan,display, "EigenSpace", subspObj);
+  generalSpanHelper(vectorsToSpan,display, "EigenSpace", subspObj);
 }
 

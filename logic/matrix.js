@@ -1,3 +1,4 @@
+/*---------------------------for R^n space-------------------------------- */
 /*
 rounding off the number to closest integer if the number is very close to an integer.
 */
@@ -39,6 +40,17 @@ function setMatrix(numRows) {
 		matrix.push(new Array());
 	}
 	return matrix;
+}
+
+// return an m*n matrix with all zero entries
+function setZeroMatrix(m,n) {
+	var out = setMatrix(m);
+	for (var i = 0; i < m; i++) {
+		for (var j = 0; j < n; j++) {
+			out[i][j] = 0;
+		}
+	}
+	return out;
 }
 
 // return a duplicate of matrix
@@ -103,7 +115,7 @@ function printMatrix(matrix) {
 		}
 		output += "]" + "\n";
 	}
-	console.log(output);
+    console.log(output);
 }
 
 // mutating the matrix by swapping row1 and row2
@@ -121,6 +133,7 @@ function swap_row(matrix, row1, row2) {
 function multiply(A,B) {
 	var m = A.length;
 	var n = B[0].length;
+
 	// initialize the outputArr
 	var output = setMatrix(m);
 	for (var r = 0; r < m; r++) {
@@ -135,6 +148,29 @@ function multiply(A,B) {
 		}
 	}
 	return output;
+}
+
+/*
+   precond: 2 m*n matrices A and B
+   postcond: 1 m*n matrix representing A + B */
+function add(A, B) {
+    
+    let numRows = A.length;
+    let numColumns = A[0].length;
+
+    // initialise the outputMatrix
+    let output = setMatrix(numRows);
+
+    // iterate through each row
+    for (let i = 0; i < numRows; i++) {
+        // iterate through each column
+        for (let j= 0; j < numColums; j++) {
+            // entry wise addition
+            ouput[i][j] = A[i][j] + B[i][j];
+        }
+    }
+
+    return output;
 }
 
 /*function mutating a m*n matrix into REF, where n is the number of column vectors. 
@@ -197,7 +233,7 @@ function findPivots(matrix){
 	var output = new Array();
 	// row:= each row of the output array = each column vector of the original matrix
 	for (var row = 0; row < numCols; row++) {
-		// each row is another array with two indices, initialize all columns to be non- pivot, and the pivot points to be a dummy (-1,-1) 
+		// each row is another array with three indices, initialize all columns to be non- pivot, and the pivot points to be a dummy (-1,-1) 
 		output[row] = [new Array(),false, {r: -1, c: -1}];
 		// record the column vectors in the output matrix 
 		for (var i = 0; i < numRows; i++ ) {
@@ -273,6 +309,99 @@ function guassJordanElimination(matrix) {
 } 
 
 
+/*
+precond: augmentedMatrix: m*n matrix(2d array)
+postcond:
+  
+	case1: last col pivot col --> alert inconsistent.
+	case2: else output a r*c matrix: 1st column as the point 
+		and subsequent columns as direction vectors(or coordinates wrt a 
+		particular arbitrary value). When all columns are pivot columns except the 
+		last column, c= 1 --> the solution is a point/ unique solution.
+note: for linear equations with 3 unknowns(x,y,z), no of col of augmented
+matrix = 4. output: if the augmented is consistent, output a 3*c matrix. 
+cases: c == 1 --> a point, c == 2 --> a line, c == 3 --> a plane, c = 4	--> the whole space
+*/
+function solveAugmentedMatrix(augmentedMatrix) {
+	/*
+	1. duplicate matrix, apply guassian elimination and findPivots 
+	2. based on 1. traverse to get numOfNonPivotColumns and coordinates(array where each index
+	correp to column number of the column vector, if pivot, return the coordiate of the pivot, else
+	return {r:-1,c:-1})
+	3. check if last column pivot column, if so, alert and return 
+	4. else, create an output k * j matrix, where k = numUnkowns, j = 1 + numNonPivotColumns; 
+	set up a state storing the currentCol of arbitraryNum, 
+	traverse through augmentedMatrix(in REF), column by column, from 
+	the second last column/ last unknown, to assign values row by row starting from the last
+	row of the output
+		a.if pivot, set orginal entry at output[currentRow][currentCol] = constantOfTheEquation 
+		create var ans and set it to the original value in the matrix, assign value entry by entry forward on the current row,
+		starting from constant term(using currentOuputCol to traverse through). when assigning each value of output 
+		at (currentOutPutRow,currentOutputCol), traverse through all unknowns after the pivot point on 
+		the same row in the augmented matrix. 
+		b. if non-pivot, simply replace output[currentRow][currentArbitrayCol] = 1
+	*/
+	var matrix = duplicate(augmentedMatrix)
+	var m = matrix.length;
+	var n = matrix[0].length;
+
+	var vectorsProperty = findPivots(matrix);
+
+	// if last column is pivot, alert inconsistent and return an empty 2d array/matrix with m rows
+	if (vectorsProperty[n - 1][1]) {
+		alert("inconsistent linear system!");
+		return setMatrix(m);
+	}
+
+	var numOfNonPivotCols = 0;
+	/* 1d array where each index stores pivot coordinate of the corresp column if any */
+	var coordinates = new Array(); 
+	// traverse through each column of the matrix, except the last column 
+	for (var vectorNum = 0; vectorNum < n - 1; vectorNum++) {
+		//increase the numOfNonPivotCols if encountered
+		if (!vectorsProperty[vectorNum][1]) {
+			numOfNonPivotCols++;
+		}
+		coordinates.push(vectorsProperty[vectorNum][2]);
+	}
+	
+	// (n -1) * (numOfNonPivotCols + 1) output matrix,with all entries 0.
+	var numRowsOfOutput = n - 1;
+	var numColsOfOutput = numOfNonPivotCols + 1;
+	var out = setZeroMatrix(numRowsOfOutput, numColsOfOutput);
+	// state indicating current arbitaray number assigned so far, initialize to the last column of output matrix 
+	var currentArbitrayCol = numOfNonPivotCols;
+
+	/* assign values into the output matrix,starting from the last row of output matrix/ second last column of augmentedMatrix,
+	For each row, assign entry by entry rightwards, starting from the constant entry.
+	*/
+	for (var currentRow = numRowsOfOutput - 1; currentRow >= 0; currentRow--) {
+		var currentPivot = coordinates[currentRow];
+		if (currentPivot.r == -1) {
+			// if non -pivot, assign 1 
+			out[currentRow][currentArbitrayCol] = 1;
+			currentArbitrayCol--;
+		} else {
+			// if pivot, initialize the constant term of the currentRow to the RHS value of the augmented matrix.
+			out[currentRow][0] = matrix[currentPivot.r][n - 1];
+			for (var currentCol = 0; currentCol < numColsOfOutput; currentCol++) {
+				// a state storing the value to be assigned at the current entry
+				var ans = out[currentRow][currentCol];
+				// minus off the components from other unknowns after the pivot
+				for (var augMatrixCol = currentPivot.c + 1; augMatrixCol < n - 1; augMatrixCol++) {
+					ans -= matrix[currentPivot.r][augMatrixCol] * out[augMatrixCol][currentCol];
+				}
+				ans /= matrix[currentPivot.r][currentPivot.c];
+				out[currentRow][currentCol] = ans;
+			}
+		}
+		
+	}
+
+	return out;
+} 
+
+
 /* 
 precond: matrix: m*n matrix
 postCond: returning a 2d m*k matrix indicating k column vectors that span the Column space of the matrix. 
@@ -290,9 +419,11 @@ function findColumnSpace(M){
 		if (vectorsProperty[index][1]) {
 			appendColumn(outputMatrix,vectorsProperty[index][0]);
 		}
-	}
+	}   
 	return outputMatrix;
 }
+
+
 
 /* 
 precond: m*n matrix
@@ -507,3 +638,224 @@ function findRestrictedRange(matrix,Vectors) {
 	printMatrix(outputMatrix);
 	return outputMatrix;
 }
+
+
+
+
+/* precond: 1 row vector (3 element array)
+   postcond: length of the vector */
+function vectorLength(vector) {
+    
+    // our vector is [a, b, c]
+    // calculate a^2 + b^2 + c^2
+    let squaredSum = vector.reduce(function(accSquaredSum, nextCoord) {
+        let squaredNextCoord = Math.pow(nextCoord, 2);
+        return accSquaredSum + squaredNextCoord;
+   });
+
+   // return sqrt(squaredSum);
+   return Math.sqrt(squaredSum);
+
+}
+
+
+/* precond: 1 row vector (3 element array)
+   postcond: a unit vector in the same direction as the given vector */
+function getUnitVector(vector) {
+    
+    // get the length of the given vector
+    let magnitude = vectorLength(vector);
+    // scale the vector to a unit vector
+    let scaledUnitVector = vector.map(function(coordinate) {
+        return coordinate / magnitude;
+    });
+
+    return scaledUnitVector;
+}
+
+
+
+/*--------------------------- for R^3 space-------------------------------- */
+
+/* precond: 2 row vectors (each vector is a 3 element array)
+   postcond: 1 vector that is orthogonal to both the given vectors, in a 3 element array */
+function crossProduct(vectorA, vectorB) {
+
+    /* this is the cross product formula,
+       derived using the distributive property of cross product */
+    
+    let resultantX = vectorA[1]*vectorB[2] - vectorA[2]*vectorB[1];
+    let resultantY = -1*vectorA[0]*vectorB[2] + vectorA[2]*vectorB[0];
+    let resultantZ = vectorA[0]*vectorB[1] - vectorA[1]*vectorB[0];
+
+    return [resultantX, resultantY, resultantZ];
+
+}
+
+/* precond: 2 row vectors (each vector is a 3 element array)
+   postcond: the dot product of the two vectors */
+function dotProduct(vectorA, vectorB) {
+    // use the multiply function to compute dot product
+    // multiply function will return a 1*1 matrix
+   let ans = multiply([vectorA], matrixify(vectorB));
+
+   // extract and return the scalar value from the 1*1 matrix
+   return ans[0][0];
+}
+
+/* precond: 2 linearly independent row vectors and 1 point, defining a plane
+            Note: A plane is defined by 1 point and 2 linearly independent vectors
+                  e.g --> plane a:= (0, 0, 0) + s(1, 0, 0) + r(0, 1, 0), where r and s are arbitrary parameters
+            The vectors and the point will both be row vectors (3 element arrays)
+
+   postcond: coefficients (x, y, z) of the Cartesian equation "ax + by + cz = d" of the plane defined 
+             by these 2 vectors and 1 point. The coefficients are returned as an array [a, b, c, d] */
+function planeVectorToCartesian(vectorA, vectorB, pointOnPlane) {
+    
+    // obtain a vector perpendicular to the plane defined by the 2 vectors
+    let normalVector = crossProduct(vectorA, vectorB);
+    
+    // obtain a unit vector in same direction as normal Vector;
+    let unitNormalVector = getUnitVector(normalVector);
+
+    // take the dot product of the point with the unitNormalVector
+    let d = dotProduct(pointOnPlane, normalVector);
+    let a = normalVector[0];
+    let b = normalVector[1];
+    let c = normalVector[2];
+    
+    return [a, b, c, d];  // ax + by + cz = d
+}
+
+
+/* precond: 1 row vectors and 1 point, defining a line
+            Note: A line is defined by 1 point and 1 vector
+                  e.g --> line a:= (0, 0, 0) + s(1, 0, 0), where s is an arbitrary parameter
+            The vector and the point will both be row vectors (3 element arrays)
+
+   postcond: coefficients (x, y, z) of the Cartesian equations "ax + by + cz = d" of the 2 planes intersecting
+             at the given line. 
+             The coefficients are returned as a 2*4 array
+    
+             e.g. Cartesian Eqn 1: ax + by + cz = d
+                  Cartesian Eqn 2: ex + fy + gz = h
+                  output array: [ [a, b, c, d], [e, f, g, h] ] */
+function lineVectorToCartesian(vectorA, pointOnLine) {
+
+    /* write the given vectorA into a 1*3 matrix */
+    let lineMatrix = [vectorA];
+    
+        /* solve for the null space of this matrix.
+       Every vector in the null space will be orthogonal to the 
+       vectors of the given line. */
+    let nullSpaceBasis = findNullSpace(lineMatrix);
+
+    /* in this case, the null space has dimension 2 */
+    /* there will be 2 vectors in nullSpaceBasis */
+
+    /* retrieve the 2 vectors */
+    printMatrix(nullSpaceBasis);
+    let vectorB = [nullSpaceBasis[0][0], nullSpaceBasis[1][0], nullSpaceBasis[2][0]];
+    let vectorC = [nullSpaceBasis[0][1], nullSpaceBasis[1][1], nullSpaceBasis[2][1]];
+
+    /* get the cartesian eqn of the plane spanned by vector A and B*/
+    let planeAB = planeVectorToCartesian(vectorA, vectorB, pointOnLine);
+
+    /* get the cartesian eqn of the plane spanned by vector A and C*/
+    let planeAC = planeVectorToCartesian(vectorA, vectorC, pointOnLine);    
+    
+    printCartesianEqn(planeAB);
+    printCartesianEqn(planeAC);
+
+    /* return the 2 planes */
+    return [planeAB, planeAC]
+}
+
+
+/* precond: the coefficients of a cartesian equation defining a space
+            the coefficients will be in a 4 element array
+            ax + by + cz = d --> [a, c, c, d]
+            
+            note: since only 1 equation is provided, the space will be either
+            a plane or the whole 3D space
+
+   postcond: a 3*(n + 1) matrix, where n is the number of linearly independent vectors
+             each vector is a basis vector of the given space.
+             The last column in a point in the space */
+function cartesianToVector(cartesianCoeffs) {
+    
+    /* solve for the null space of the 1*3 matrix [a b c] */
+    let nullSpaceBasis = findNullSpace([ [cartesianCoeffs[0], cartesianCoeffs[1], cartesianCoeffs[2]] ]);
+    
+    /* check if nullSpace dimension is 3 */
+    if (nullSpaceBasis[0].length === 3) {   
+        /* check if d !== 0 here, for example 0x + 0y + 0z = 1 --> no solutions exist */        
+        if (cartesianCoeffs[3] !== 0) {
+            alert("equation has no solutions");
+        } else {     
+            /* if not, return the whole 3d space, together with the point (0, 0, 0) */
+            appendColumn(nullSpaceBasis, [0, 0, 0]);
+            return nullSpaceBasis;   
+        }     
+    } else {
+      /* now, we have the vectors defining the plane given */
+      /* next, we need to find 1 point in the plane given */
+
+      /* null space MUST have dimension 2  in this case */
+      /* --> one of the coefficients, a, b, c must be non zero */
+
+      /* find the first non zero coefficient, starting from a */
+      let foundFirstNonZero = false;
+      let counter = 0;
+
+      while ((counter < 3) && (foundFirstNonZero === false)) {  
+        if (cartesianCoeffs[counter] !== 0) {
+          foundFirstNonZero = true; 
+        } else {
+          counter++;
+        }
+      }
+      
+      let firstNonZeroIndex = counter; 
+
+      /* we substitute 0 into the other variables */
+      /* divide d by the first non zero coefficient */
+
+      let dividedD = cartesianCoeffs[3] / cartesianCoeffs[firstNonZeroIndex];
+      
+      /* construct a point in the given plane using this info */
+      let pointInSpace = [0, 0, 0];
+      pointInSpace[firstNonZeroIndex] = dividedD;
+      
+      appendColumn(nullSpaceBasis, pointInSpace);
+      return nullSpaceBasis;
+     
+    }
+
+}
+
+/* precond: a 4 element array containing the coefficients of a Cartesian equation.
+            --> e.g. If the eqn is x + y + z = 1, the array will be: [1, 1, 1, 1]
+
+   postcod: a string containing the LaTeX expression for this Cartesian equation */
+function printCartesianEqn(cartesianCoeffs) {
+    
+    const variables = ["x", "y", "z"];    
+
+    let currentEqn = "\\[" + cartesianCoeffs[0] + variables.shift();
+
+    for(let i = 1; i < 3; i++) {
+        let nextCoeff = cartesianCoeffs[i];
+
+        if (nextCoeff >= 0) {
+            currentEqn = currentEqn + "+ " + nextCoeff + variables.shift();
+        } else {  
+            currentEqn = currentEqn + nextCoeff + variables.shift();
+        }
+    }      
+     
+    currentEqn = currentEqn + "= " + cartesianCoeffs[3] + "\\]";
+    return currentEqn;
+}
+
+

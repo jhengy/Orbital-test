@@ -57,20 +57,21 @@ function linComboPlayable(vectorList) {
     }).reduce(function(prevVector, nextVector) {
       
         /* use an interval of 180 steps --> complete animation in 3s */
+        var numOfSteps = 180;
         var xDistance = nextVector.x - prevVector.graphic.position.x;
-        var xStep = xDistance / 180;
+        var xStep = xDistance / numOfSteps;
 
         var yDistance = nextVector.y - prevVector.graphic.position.y;
-        var yStep = yDistance / 180;
+        var yStep = yDistance / numOfSteps;
 
         var zDistance = nextVector.z - prevVector.graphic.position.z;
-        var zStep = zDistance / 180;
-       
-       	var translateCounter = 0; 
+        var zStep = zDistance / numOfSteps;
+
+        var translationCounter = 0;
+
         conditions.push(() => {
-        	translateCounter++;
           //return ((Math.floor(prevVector.graphic.position.x) == nextVector.x) && (Math.floor(prevVector.graphic.position.y) == nextVector.y) && (Math.floor     (prevVector.graphic.position.z) == nextVector.z));
-            return translateCounter == 180;
+          return translationCounter == numOfSteps;    
         });
 
         actions.push(() => {
@@ -78,6 +79,7 @@ function linComboPlayable(vectorList) {
           prevVector.graphic.position.x += xStep;
           prevVector.graphic.position.y += yStep;
           prevVector.graphic.position.z += zStep;
+          translationCounter++;
        
         });
 
@@ -113,7 +115,7 @@ function linComboPlayable(vectorList) {
         
         if (actions.length == 0) {
           // remove this Playable from the head of the render queue 
-          renderQueue.shift();
+          removeFromRenderQueue(this.play);
         } else {       
           if (this.currentCondition() == false) {
             // terminating condition not met, continue current animation
@@ -134,4 +136,17 @@ function linComboPlayable(vectorList) {
 
       renderQueue.unshift(this.play);
 
+}
+
+
+/* remove a given function from the render queue. 
+   IMPORTANT: The given function MUST be present in the render queue */
+function removeFromRenderQueue(funcToBeRemoved) {
+    /* filter the renderQueue, so that only the target function is removed */   
+    renderQueue = renderQueue.filter((renderFunction) => renderFunction !== funcToBeRemoved);
+}
+
+/* add this function to the renderQueue to rotate the grid about a specified axis */
+function rotateGrid(axisToRotate) {
+    axes.rotation[axisToRotate] += 0.01;
 }

@@ -1,16 +1,47 @@
+/*------------------GENERAL SETUP -------------------------------*/
+
+/* key variables for a basic threejs scene */
 var camera, scene, renderer, controls;
-var axes = new THREE.Object3D;
-var allObjects = new THREE.Object3D;
+
+/* raycaster contains methods to handle mouse input */
+var raycaster = new THREE.Raycaster();
+
+/* track the user's cursor coordinates globally */
+var mouse = new THREE.Vector2();
+mouse.x = 1000;
+mouse.y = 1000;
+/* renderQueue contains list of functions to be executed on each frame. 
+   'render' function must be executed last */
 var renderQueue = [render];
 
-/*a separate var storing ref to an obj3d for containing all graphical elements 
+/* axes is the root object of our scene */
+var axes = new THREE.Object3D;
+
+/* stores references to all graphical elements related to the vectors section */
+   // NOTE: needs renaming 
+var allObjects = new THREE.Object3D;
+
+/* a separate var storing ref to an obj3d for containing all graphical elements 
  related to the span section */
 var spanGraphics = new THREE.Object3D;
-/*a separate var storing ref to an obj3d for containing all graphical elements 
+
+/* a separate var storing ref to an obj3d for containing all graphical elements 
  related to the matrices section */
 var matricesGraphics = new THREE.Object3D;
 
-init();
+function onMouseMove(event) {
+
+	// calculate mouse position in normalized device coordinates
+	// (-1 to +1) for both components
+    var stage = document.getElementById("stage");
+
+	mouse.x = ( event.clientX / stage.innerWidth ) * 2 - 1;
+	mouse.y = - ( event.clientY / stage.innerHeight ) * 2 + 1;
+
+}
+
+window.addEventListener( 'click', onMouseMove, false );
+
 // add eventListener to adjust 
 window.addEventListener("resize", function() {
 	var width = 3*(window.innerWidth / 4);
@@ -20,14 +51,14 @@ window.addEventListener("resize", function() {
 	camera.updateProjectionMatrix();
 });
 
+init();
 animate();
-
 
 function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x002233 );
   camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 5000);
-  camera.position.set(0, 5, 1.5).setLength(120);
+  setCamera();
 
   var stage = document.getElementById("stage");
 
@@ -39,17 +70,14 @@ function init() {
   //GridHelper( size of the entire grid, divisions : number of divisions on the grid, colorCenterLine : Color, colorGrid : Color (0x00ff00) ) --> 
   // green central line
   var gridXZ = new THREE.GridHelper(100, 10,0xffffff, 0x33bbff);
-  gridXZ.position.set(0,0,0);
   axes.add(gridXZ);
   // red central line
   var gridXY = new THREE.GridHelper(100,10,0xffffff,0x33bbff);
-  gridXY.position.set(0,0,0);
   // rotation about x axis by 90 degrees
   gridXY.rotation.x = Math.PI/2;
   axes.add(gridXY);
   // blue central line
   var gridYZ = new THREE.GridHelper(100,10,0xffffff,0x33bbff);
-  gridYZ.position.set(0,0,0);
   // rotation about z axis by 90 degrees
   gridYZ.rotation.z = Math.PI/2;
   axes.add(gridYZ); 
@@ -58,6 +86,7 @@ function init() {
   axes.add(allObjects);
   axes.add(spanGraphics);
   axes.add(matricesGraphics);
+  setGrid();
   scene.add(axes);
 
   // create labels for axes
@@ -77,6 +106,9 @@ function init() {
   axes.add(zLabel);
 }
 
+/* this function iterates through renderQueue and executes each function in the queue. 
+   We must call this function once per frame of animation. This is done using 
+   requestAnimationFrame. */
 function animate() {
   requestAnimationFrame(animate);
   
@@ -85,9 +117,38 @@ function animate() {
   });
 }
 
+/* add this function to the renderQueue to render the scene */
 function render() {
   renderer.render(scene, camera);
+
+	// update the picking ray with the camera and mouse position
+	raycaster.setFromCamera(mouse, camera);
+
+	// calculate objects intersecting the picking ray
+	var intersects = raycaster.intersectObjects(allObjects.children, true);
+        
+   // console.log(intersects.length);
+  
+	for ( var i = 0; i < intersects.length; i++ ) {
+		intersects[ i ].object.material.color.set( 0xffff00 );
+
+	}
 };
+
+/* Sets the Grid to the default rotation */
+function setGrid() {
+  axes.position.set(0, 0, 0);
+  axes.rotation.set(0, 0, 0);
+}
+
+/* Sets the Camera to the Default View */
+function setCamera() {    
+  camera.position.set(40, 120, 0);
+  camera.lookAt(0, 0, 0);
+  camera.up.set(0, 1, 0);
+  camera.updateProjectionMatrix();
+
+}
 
 function makeTextSprite(message, opts, xCoord, yCoord, zCoord) {
   var parameters = opts || {};
@@ -122,6 +183,8 @@ function makeTextSprite(message, opts, xCoord, yCoord, zCoord) {
 }
 
 
+/*------------------VECTOR GRAPHICS-------------------------------*/
+
 // function to plot vector in the form of an arrow
 function createVector(x,y,z,origin,hex) {
   var v = new THREE.Vector3(x,y,z);
@@ -134,6 +197,31 @@ function createVector(x,y,z,origin,hex) {
   arrowHelper.line.material.linewidth = 3; // set width of the vector
   return arrowHelper;
 }
+
+
+/* read the vectorlist and draw the vectors on the grid */
+function drawAllVectors(vectorQueue) {
+  // first, clear existing vectors
+  axes.remove(allObjects);
+  allObjects = new THREE.Object3D;
+  axes.add(allObjects);
+
+  for (var i = 0; i < vectorQueue.length; i++) {
+
+    var currentVectorObj = vectorQueue[i];
+    var vector = createVector(currentVectorObj.xCoord.value, currentVectorObj.yCoord.value, currentVectorObj.zCoord.value,
+        new THREE.Vector3(0,0,0),0xff0066);
+    
+    /* Store the created threeJS object into the vector object in the Queue [to facilitate deletion of vectors] */
+    vectorQueue[i].graphic = vector;
+    
+    /* Add the created threeJS object to the scene */
+    allObjects.add(vector);
+  }  
+}
+
+
+/*------------------SPAN GRAPHICS-------------------------------*/
 
 // function creating a line graphic spanned by the vector 
 // vector: vector wrapped in Vector3 object; scale: the upper bound of x,y,z axis 
@@ -233,27 +321,6 @@ function drawOneVector(x,y,z,hex, container) {
   return graphic;
 }
 
-/* read the vectorStack and draw the vectors on the grid */
-function drawAllVectors(vectorQueue) {
-  // first, clear existing vectors
-  axes.remove(allObjects);
-  allObjects = new THREE.Object3D;
-  axes.add(allObjects);
-
-  for (var i = 0; i < vectorQueue.length; i++) {
-
-    var currentVectorObj = vectorQueue[i];
-    var vector = createVector(currentVectorObj.xCoord.value, currentVectorObj.yCoord.value, currentVectorObj.zCoord.value,
-        new THREE.Vector3(0,0,0),0xff0066);
-    
-    /* Store the created threeJS object into the vector object in the Queue [to facilitate deletion of vectors] */
-    vectorQueue[i].graphic = vector;
-    
-    /* Add the created threeJS object to the scene */
-    allObjects.add(vector);
-  }  
-}
-
 /*
 precond: m: 3 * n matrix of n LI column vectors, where  1<= n <= 3 container: the Object3D to put all graphics generated into
 postcond : generating graphics of vectors and subsp in the canvas, then return an array containing 
@@ -274,6 +341,9 @@ function drawSpan(m,container) {
     arr.push(v);
     obj.add(line);
     obj.add(v);
+
+    lineVectorToCartesian([x, y, z], [0, 0, 0]);
+
   } else if (numVectors == 2) {
     var x1 = m[0][0];
     var y1 = m[1][0];
@@ -294,6 +364,7 @@ function drawSpan(m,container) {
     obj.add(plane);
     obj.add(v1);
     obj.add(v2);
+
   } else {
     var x1 = m[0][0];
     var y1 = m[1][0];
@@ -331,3 +402,30 @@ function scale(mesh, factor) {
 }
 
 
+/*
+precond: coefficients: a 4-elements 1d array, at least one of 
+A,B,C != 0 , i.e. [A,B,C,D] ----> Ax + By + Cz = D
+postcond: draw the plane in a 3D grid
+*/
+function createPlaneFromCartesian(coefficients,sizeOfPlane,color) {
+
+  var outputObj = new THREE.Object3D();
+  var normal = [coefficients[0],coefficients[1],coefficients[2]];
+  var unitNormal = getUnitVector(normal);
+  var perpDistanceFromOrigin = -1 * coefficients[3] / vectorLength(normal);
+
+  var plane = new THREE.Plane(
+                new THREE.Vector3(unitNormal[0],unitNormal[1],unitNormal[2]),
+                perpDistanceFromOrigin
+                );
+  var helper = new THREE.PlaneHelper(plane, sizeOfPlane, color);
+  outputObj.push(helper);
+  return outputObj;
+}
+
+/*
+postcond: a function drawing objects from linear system 
+*/
+function createObjFromLinearSystem() {
+
+}
