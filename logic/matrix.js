@@ -65,7 +65,7 @@ function duplicate(matrix) {
 	}
 	return outputMatrix;
 }
-//function mutating matrix by appending another column vector to the existing m*n matrix consisting of n column vectors
+//function mutating matrix by appending a row vector to the existing m*n matrix consisting of n column vectors
 // matrix: 2d array m*n, colVector: 1d array 1 * m
 function appendColumn(matrix, colVector) {
 	for (var row = 0; row < matrix.length; row++ ) {
@@ -80,11 +80,31 @@ function appendMatrix(m1,m2) {
 		}
 	}
 }
+
+//function mutating arr1 by appending arr2 to its tail
+//both arr1 and arr2 are 1d array
+function appendArr (arr1, arr2) {
+	// make arr1 a 2d array/matrix with 1 row.
+	var matrix = [arr1];
+	appendMatrix(matrix,[arr2]);
+	return matrix[0];
+}
+
+/* function mutating a m * n matrix by removing its first column and return  
+shifted column as a 1d array / row vector.
+*/
+function shiftColumn(matrix) {
+	var outputArr = new Array()
+	for (var row = 0; row < matrix.length; row++) {
+		outputArr.push(matrix[row].shift());
+	}
+	return outputArr;
+}
 // return kth column of m*n matrix M as a 1d array
-function getCol(M,k){
+function getCol(matrix,k){
 	var outArr = new Array();
-	for (var i = 0; i < m.length; i++) {
-		outArr.push(M[i][k]);
+	for (var i = 0; i < matrix.length; i++) {
+		outArr.push(matrix[i][k]);
 	}
 	return outArr;
 }
@@ -95,6 +115,7 @@ function matrixify(v) {
 	appendColumn(out,v);
 	return out;
 }
+
 // V: a 2d n * 1 matrix
 // return a 1d 1*n row vector
 function vectorize(V) {
@@ -310,10 +331,9 @@ function guassJordanElimination(matrix) {
 
 
 /*
-precond: augmentedMatrix: m*n matrix(2d array)
+precond: augmentedMatrix: m*n matrix(2d array), no NaN entries
 postcond:
-  
-	case1: last col pivot col --> alert inconsistent.
+	case1: last col pivot col --> alert inconsistent, output an empty matrix
 	case2: else output a r*c matrix: 1st column as the point 
 		and subsequent columns as direction vectors(or coordinates wrt a 
 		particular arbitrary value). When all columns are pivot columns except the 
@@ -423,6 +443,39 @@ function findColumnSpace(M){
 	return outputMatrix;
 }
 
+/* 
+precond: m*n matrix
+postcond: returning a n * k matrix, where n is numOfCol of matrix 
+and k is the number of none- pivot columns, each column of the result 
+is a basis vector of the nullspace, 
+when k = 0/ when 2d arr is empty --> nullspace is a zero space.
+
+nullspace of a 3*3 matrix: 3 cases: 1 pivot column, 2 pivot columns, 3 pivot columns: an identity matrix in RREF -> nullspace is zero space.
+for the prev 2 cases, can be solved mathematically through RREF, by setting unknowns(algebra). 
+*/
+function findNullSpace(M) {
+	let augmentedMatrix = duplicate(M);
+	let zeroVector = [];
+	for (var i = 0; i < augmentedMatrix.length; i++) {
+		zeroVector.push(0);
+	}
+	// appending zero vetor to augmentedMatrix
+	appendColumn(augmentedMatrix,zeroVector);
+	var output = solveAugmentedMatrix(augmentedMatrix);
+	shiftColumn(output);
+	return output;
+}
+
+/* 
+precond: augmentedMatrix: m *n matrix, made up of n -1 linearly independent vectors,
+i.e. all n columns are pivot columns except the last column
+
+postcond: return a 2D array/ n -1 * 1 col vector, representing the unique solution/coordinate vector of the redundant vector(last col)
+*/ 
+function backSubst(augmentedMatrix) {
+	return solveAugmentedMatrix(augmentedMatrix);
+}
+
 
 
 /* 
@@ -431,9 +484,8 @@ postcond: returning a n * k matrix, where n is numOfCol of matrix and k is the n
 when k = 0/ when 2d arr is empty --> nullspace is a zero space.
 nullspace of a 3*3 matrix: 3 cases: 1 pivot column, 2 pivot columns, 3 pivot columns: an identity matrix in RREF -> nullspace is zero space.
 for the prev 2 cases, can be solved mathematically through RREF, by setting unknowns(algebra). 
-
 */
-function findNullSpace(M) {
+function findNullSpaceOld(M) {
 	/*
 	case1: For the case where all columns are pivot columns, the nullspcae is zero space
 	case2: existence of non-pivot columns.
@@ -506,11 +558,12 @@ function findNullSpace(M) {
 	return output;
 }
 
+
 /* 
 precond: m * n vectorMatrix is made up of n -1 linearly independent vectors,i.e. all n columns are pivot columns except the last column
-postcond: return a 1D array/ row vector of size n-1, representing the unique solution/coordinate vector of the redundant vector(last col)
+postcond: return a 2D array/ n -1 * 1 col vector, representing the unique solution/coordinate vector of the redundant vector(last col)
 */ 
-function backSubst(vectorMatrixOriginal) {
+function backSubstOld(vectorMatrixOriginal) {
 	var vectorMatrix = duplicate(vectorMatrixOriginal);
 	var m = vectorMatrix.length;
 	var n = vectorMatrix[0].length;
@@ -521,7 +574,7 @@ function backSubst(vectorMatrixOriginal) {
 	var output = new Array(n - 1);
 	// starting from the last pivot point at (n-2,n-2), perform the algorithm to find the output. update the pivot point position by moving (-1,1)
 	var currentPivot = n - 2;// all pivots having same row and column
-	printMatrix(vectorMatrix);
+	//printMatrix(vectorMatrix);
 	while(currentPivot >= 0) {
 		var pivotValue = vectorMatrix[currentPivot][currentPivot];
 		// initialize ans to be the element at the last column at currentRow.
@@ -534,19 +587,18 @@ function backSubst(vectorMatrixOriginal) {
 		output[currentPivot] = ans;
 		currentPivot--;
 	}
-	return output;
+	return matrixify(output);
 }
 
 
 /*
 precond: M : m*n matrix with first n-1 columns as basis vectors of a subspace and the last column as the redundant vector
-postCond: returning a n-1 * 1 row vector correponding to the coordinate vector of the redundant vector
+postCond: returning a 1 * n-1 column vector correponding to the coordinate vector of the redundant vector
 coefficient vector of a redundant vecotr in the plane. As good as evaluating a system of linear equations.
 three possible cases: subspace spanned by 1) 1 vector 2) 2 vectors 3) 3 vectors. 1) is nothing more than finding the scaling factor 2) && 3): using back substitution to solve foe equation. note: case 2 solution is a 2d vector, case 3 solution is a 3d vector.
 
 for case 1: just apply scaling.
 for case2: to express a redundant vector in terms of 2 LI vector, one can just use the idea to find nullspace of a 3*3.
-precond: M is a m*n matrix where ONLY the last column is the redundant vector and n - 1 columns before it are the basis vectors
 */
 function expressRedundantVector(M) {
 	return backSubst(M);
@@ -651,7 +703,7 @@ function vectorLength(vector) {
     let squaredSum = vector.reduce(function(accSquaredSum, nextCoord) {
         let squaredNextCoord = Math.pow(nextCoord, 2);
         return accSquaredSum + squaredNextCoord;
-   });
+   	}, 0);
 
    // return sqrt(squaredSum);
    return Math.sqrt(squaredSum);

@@ -16,6 +16,7 @@
   position: absolute;
   top: 20%;
   left: 70%;
+  font-size: 100%;
 }
 
 ::-webkit-scrollbar { 
@@ -28,22 +29,35 @@
 }
 
 .label:hover {
-  font-size: 50;
   background-color: yellow;
   cursor: pointer;
 }
 
 
 #vectorsMenu {
-  top: 20%;
+  top: 10%;
 }
 
 #spansMenu {
-  top: 40%;
+  top: 20%;
 }
 
 #matricesMenu {
-  top: 60%;
+  top: 30%;
+}
+
+#plotterMenu {
+  top: 40%;
+}
+
+#homeMenu {
+   background-color: #002233;
+   position: absolute;
+   right: 1%;
+   width: 7%;
+   height: 9%;
+   z-index: 1;
+
 }
 
 .form {
@@ -57,8 +71,6 @@
   height: 1250%;
   border-radius: 25px;
   
-
-
   font-family: arial;
   overflow: auto;   
 }
@@ -74,7 +86,6 @@
   grid-column-gap: 5%;
 
   font-size:8px;
-
 }
 
 
@@ -106,9 +117,28 @@
   grid-template-columns: 20%;
   grid-column-gap: 1%;
 }
+
 #matricesTextsInputs input {
   width : 10px;
   height : 20px;
+}
+
+#plotterInputs {
+  position: absolute;
+  width: 90%;
+  left: 1%;
+  top: 20%;
+
+  font-size:8px;
+  display: grid;
+  grid-template-columns: 10% 10% 10% 10% 10%;
+  grid-column-gap: 5%;
+}
+
+#eqnDisplay {
+  position: absolute;
+  top: 40%;
+  width: 100%;
 }
 
 
@@ -123,9 +153,20 @@
   z-index: 1;
 
   transition: 0.2s;
-
 }
 
 #controlsMenu:hover {
   opacity: 1;
+}
+
+table {
+  background-color: #ffffff;
+}
+
+.collapsible {  
+    transition: height 1s;
+}   
+
+tr:hover {
+  background-color: #eeeeee;
 }
